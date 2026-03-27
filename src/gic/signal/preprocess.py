@@ -15,29 +15,38 @@ def build_signal_sample_from_timeseries(series: GeomagneticTimeSeries, signal_co
         for channel in channels
     }
     observed_values = {channel: list(values) for channel, values in clean_values.items()}
+    series_metadata = dict(series.metadata)
+    reference_available = bool(series_metadata.get('reference_available', False))
     metadata: dict[str, Any] = {
-        "origin_series_id": series.series_id,
-        "origin_source_name": series.source_name,
-        "reference_clean_values": clean_values,
-        "reference_available": True,
+        'origin_series_id': series.series_id,
+        'origin_source_name': series.source_name,
+        'reference_available': reference_available,
+        'benchmark_type': series_metadata.get('benchmark_type', 'synthetic' if reference_available else 'real_event'),
+        **series_metadata,
     }
+    if reference_available:
+        metadata['reference_clean_values'] = clean_values
 
-    synthetic_noise = signal_config.get("synthetic_noise", {})
-    if synthetic_noise.get("enabled", False):
+    synthetic_noise = signal_config.get('synthetic_noise', {})
+    allow_synthetic = bool(synthetic_noise.get('enabled', False)) and not bool(series_metadata.get('disable_synthetic_noise', False))
+    if allow_synthetic:
         clean_matrix = channel_values_to_matrix(clean_values, channels)
         noisy_matrix = inject_synthetic_noise(clean_matrix, synthetic_noise)
         observed_values = matrix_to_channel_values(noisy_matrix, channels)
-        metadata["synthetic_noise"] = dict(synthetic_noise)
-        reference_window = int(synthetic_noise.get("reference_lowfreq_window", 3))
+        metadata['synthetic_noise'] = dict(synthetic_noise)
+        metadata['reference_available'] = True
+        metadata['reference_clean_values'] = clean_values
+        metadata['benchmark_type'] = 'synthetic'
+        reference_window = int(synthetic_noise.get('reference_lowfreq_window', 3))
         reference_quasi = moving_average(clean_matrix, reference_window)
-        metadata["reference_quasi_dc_values"] = matrix_to_channel_values(reference_quasi, channels)
+        metadata['reference_quasi_dc_values'] = matrix_to_channel_values(reference_quasi, channels)
+    elif reference_available:
+        metadata['reference_quasi_dc_values'] = {channel: list(values) for channel, values in clean_values.items()}
     else:
-        metadata["reference_quasi_dc_values"] = {
-            channel: list(values) for channel, values in clean_values.items()
-        }
+        metadata['reference_quasi_dc_values'] = None
 
     return SignalSample(
-        sample_id=f"signal_{series.series_id}",
+        sample_id=f'signal_{series.series_id}',
         source_name=series.source_name,
         sensor_id=series.station_id,
         time_index=list(series.time_index),
@@ -56,7 +65,7 @@ def channel_values_to_matrix(values: dict[str, list[float | None]], channels: li
         row: list[float] = []
         for channel in channels:
             value = values[channel][index]
-            row.append(float("nan") if value is None else float(value))
+            row.append(float('nan') if value is None else float(value))
         rows.append(row)
     return np.asarray(rows, dtype=float)
 
@@ -69,10 +78,10 @@ def matrix_to_channel_values(matrix: np.ndarray, channels: list[str]) -> dict[st
 
 
 def inject_synthetic_noise(matrix: np.ndarray, config: dict[str, Any]) -> np.ndarray:
-    gaussian_std = float(config.get("gaussian_std", 1.0))
-    sinusoid_amplitude = float(config.get("sinusoid_amplitude", 0.0))
-    sinusoid_cycles = float(config.get("sinusoid_cycles", 2.0))
-    random_seed = int(config.get("random_seed", 7))
+    gaussian_std = float(config.get('gaussian_std', 1.0))
+    sinusoid_amplitude = float(config.get('sinusoid_amplitude', 0.0))
+    sinusoid_cycles = float(config.get('sinusoid_cycles', 2.0))
+    random_seed = int(config.get('random_seed', 7))
     rng = np.random.default_rng(random_seed)
     time_axis = np.linspace(0.0, 2.0 * np.pi * sinusoid_cycles, matrix.shape[0], endpoint=True)
     noisy = np.array(matrix, copy=True)
@@ -93,10 +102,9 @@ def apply_missing_strategy(matrix: np.ndarray, strategy: str) -> np.ndarray:
         if not mask.any():
             continue
         valid = series[~mask]
-        if strategy == "zero":
-            fill_value = 0.0
-            series[mask] = fill_value
-        elif strategy == "forward_fill":
+        if strategy == 'zero':
+            series[mask] = 0.0
+        elif strategy == 'forward_fill':
             last = valid[0] if valid.size else 0.0
             for index, item in enumerate(series):
                 if np.isnan(item):
@@ -117,7 +125,7 @@ def moving_average(matrix: np.ndarray, window: int) -> np.ndarray:
     smoothed = np.zeros_like(matrix, dtype=float)
     kernel = np.ones(radius, dtype=float) / float(radius)
     for column in range(matrix.shape[1]):
-        smoothed[:, column] = np.convolve(matrix[:, column], kernel, mode="same")
+        smoothed[:, column] = np.convolve(matrix[:, column], kernel, mode='same')
     return smoothed
 
 
@@ -126,6 +134,6 @@ def soft_threshold(matrix: np.ndarray, lam: float) -> np.ndarray:
 
 
 def prepare_matrix(signal_sample: SignalSample, parameters: dict[str, Any]) -> np.ndarray:
-    strategy = str(parameters.get("missing_strategy", "mean"))
+    strategy = str(parameters.get('missing_strategy', 'mean'))
     matrix = channel_values_to_matrix(signal_sample.values, signal_sample.channels)
     return apply_missing_strategy(matrix, strategy)

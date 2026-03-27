@@ -28,7 +28,7 @@
       "gaussian_std": 2.0,
       "sinusoid_amplitude": 6.0,
       "sinusoid_cycles": 2.0,
-      "reference_lowfreq_window": 3,
+      "reference_lowfreq_window": 5,
       "random_seed": 7
     },
     "methods": {
@@ -56,6 +56,19 @@
         "sparse_denoise",
         "raw_baseline"
       ]
+    },
+    "benchmarks": {
+      "synthetic_dataset": "sample_geomagnetic_storm_day",
+      "real_event_datasets": [
+        "intermagnet_bou_2020_sep01_smoke",
+        "intermagnet_frd_2020_sep01_smoke",
+        "intermagnet_ott_2020_sep01_smoke"
+      ],
+      "real_promotion_policy": {
+        "min_stations": 3,
+        "min_event_windows": 3,
+        "required_policy_consensus": 2
+      }
     }
   }
 }

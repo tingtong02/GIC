@@ -2,8 +2,25 @@
   "signal": {
     "methods": {
       "sparse_denoise": {
+        "method_version": "1.1",
+        "parameters": {
+          "backend": "dictionary_lasso",
+          "missing_strategy": "mean",
+          "trend_window": 5,
+          "refine_window": 5,
+          "sparsity_lambda": 0.8,
+          "n_dictionary_components": 8,
+          "max_iter": 300,
+          "random_seed": 17,
+          "window_enabled": true,
+          "window_size": 5,
+          "window_stride": 2
+        }
+      },
+      "legacy_sparse_baseline": {
         "method_version": "1.0",
         "parameters": {
+          "backend": "legacy_sparse_baseline",
           "missing_strategy": "mean",
           "trend_window": 3,
           "refine_window": 3,

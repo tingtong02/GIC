@@ -96,6 +96,7 @@ class GeomagneticTimeSeries:
     missing_ratio: float
     quality_flags: list[str]
     notes: str = ""
+    metadata: dict[str, Any] = field(default_factory=dict)
     version: str = SCHEMA_VERSION
 
 

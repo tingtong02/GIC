@@ -435,10 +435,22 @@ def _run_phase3_methods(
     comparison_report = None
     comparison_path = None
     if build_report and results:
+        benchmark_type = str(sample.metadata.get("benchmark_type", "synthetic"))
+        default_scope = "training" if benchmark_type == "synthetic" else "real_event_benchmark"
+        promotion_status = "ready" if benchmark_type == "synthetic" else "provisional"
+        promotion_reason = (
+            "Synthetic benchmark winner becomes the current training default."
+            if benchmark_type == "synthetic"
+            else "Real benchmark remains informational until at least 3 stations, 3 event windows, and 2 policy agreements are available."
+        )
         comparison_report = build_comparison_report(
             sample_id=sample.sample_id,
             results=results,
             comparison_config=signal_cfg.get("comparison", {}),
+            benchmark_type=benchmark_type,
+            default_scope=default_scope,
+            promotion_status=promotion_status,
+            promotion_reason=promotion_reason,
         )
         if signal_cfg.get("comparison", {}).get("export_report", True):
             comparison_path = export_comparison_report(
@@ -455,6 +467,78 @@ def _run_phase3_methods(
         "validations": validations,
         "comparison_report": comparison_report,
         "comparison_path": comparison_path,
+    }
+
+
+
+
+def _phase3_benchmark_config(config: dict[str, Any]) -> tuple[str, list[str], dict[str, Any]]:
+    signal_cfg = config.get("signal")
+    if not isinstance(signal_cfg, dict):
+        raise ValueError("Phase 3 config requires a signal section")
+    benchmarks_cfg = signal_cfg.get("benchmarks", {})
+    if not isinstance(benchmarks_cfg, dict):
+        benchmarks_cfg = {}
+    synthetic_dataset = str(benchmarks_cfg.get("synthetic_dataset") or signal_cfg.get("input_dataset"))
+    real_event_datasets = benchmarks_cfg.get("real_event_datasets", [])
+    if not isinstance(real_event_datasets, list):
+        real_event_datasets = []
+    promotion_policy = benchmarks_cfg.get("real_promotion_policy", {})
+    if not isinstance(promotion_policy, dict):
+        promotion_policy = {}
+    return synthetic_dataset, [str(item) for item in real_event_datasets], dict(promotion_policy)
+
+
+def _aggregate_real_benchmark(
+    *,
+    reports: list[dict[str, Any]],
+    comparison_priority: list[str],
+    promotion_policy: dict[str, Any],
+) -> dict[str, Any]:
+    method_scores: dict[str, list[float]] = {}
+    time_ranges: set[str] = set()
+    for item in reports:
+        time_range = item.get("time_range")
+        if isinstance(time_range, str) and time_range:
+            time_ranges.add(time_range)
+        report = item.get("report") or {}
+        for row in report.get("summary_table", []):
+            method_scores.setdefault(str(row["method_name"]), []).append(float(row["score"]))
+
+    def _priority_index(method_name: str) -> int:
+        return comparison_priority.index(method_name) if method_name in comparison_priority else len(comparison_priority)
+
+    rows = [
+        {
+            "method_name": method_name,
+            "mean_score": sum(scores) / max(len(scores), 1),
+            "report_count": len(scores),
+        }
+        for method_name, scores in method_scores.items()
+    ]
+    rows.sort(key=lambda item: (-float(item["mean_score"]), _priority_index(str(item["method_name"])), str(item["method_name"])))
+    ranking = [str(item["method_name"]) for item in rows]
+    min_stations = int(promotion_policy.get("min_stations", 3))
+    min_events = int(promotion_policy.get("min_event_windows", 3))
+    required_consensus = int(promotion_policy.get("required_policy_consensus", 2))
+    station_count = len(reports)
+    event_count = len(time_ranges)
+    ready = station_count >= min_stations and event_count >= min_events and required_consensus <= 1
+    promotion_status = "ready" if ready else "provisional"
+    promotion_reason = (
+        "Real-event benchmark satisfies current promotion thresholds."
+        if ready
+        else f"Current real benchmark coverage is {station_count} station(s), {event_count} event window(s), and 1 policy; thresholds are {min_stations} stations, {min_events} events, and {required_consensus} policy agreements."
+    )
+    return {
+        "benchmark_type": "real_event",
+        "ranking": ranking,
+        "default_method": ranking[0] if ranking else "",
+        "summary_table": rows,
+        "observed_station_count": station_count,
+        "observed_event_window_count": event_count,
+        "promotion_status": promotion_status,
+        "promotion_reason": promotion_reason,
     }
 
 
@@ -906,7 +990,6 @@ def cmd_signal_export_features(args: argparse.Namespace) -> int:
 
 def cmd_signal_build_report(args: argparse.Namespace) -> int:
     config, project_root, registry = _load_phase3_context(args)
-    dataset_name = _phase3_dataset_name(args, config)
     method_names = _phase3_active_methods(args, config)
     context, _ = initialize_run(
         config=config,
@@ -915,34 +998,110 @@ def cmd_signal_build_report(args: argparse.Namespace) -> int:
         project_root=project_root,
     )
     logger = configure_logger("gic.phase3.report", config["logging"]["level"], context.log_file)
-    payload = _run_phase3_methods(
+
+    if args.dataset_name:
+        dataset_name = _phase3_dataset_name(args, config)
+        payload = _run_phase3_methods(
+            config=config,
+            project_root=project_root,
+            registry=registry,
+            dataset_name=dataset_name,
+            method_names=method_names,
+            export_results=False,
+            build_report=True,
+        )
+        summary = summarize_validation_results(payload["validations"])
+        comparison_report = payload["comparison_report"]
+        write_summary(
+            context,
+            {
+                "status": "ok" if summary["error_count"] == 0 else "failed",
+                "dataset_name": dataset_name,
+                "comparison_path": payload["comparison_path"],
+                "default_method": comparison_report.default_method if comparison_report else None,
+            },
+        )
+        logger.info("Built single-dataset Phase 3 comparison report")
+        _serialize_result(
+            {
+                "run_id": context.run_id,
+                "dataset_name": dataset_name,
+                "sample_id": payload["sample"].sample_id,
+                "comparison_path": payload["comparison_path"],
+                "comparison_report": signal_to_dict(comparison_report) if comparison_report else None,
+                "validation_summary": summary,
+            }
+        )
+        return 0 if summary["error_count"] == 0 else 1
+
+    synthetic_dataset, real_event_datasets, promotion_policy = _phase3_benchmark_config(config)
+    synthetic_payload = _run_phase3_methods(
         config=config,
         project_root=project_root,
         registry=registry,
-        dataset_name=dataset_name,
+        dataset_name=synthetic_dataset,
         method_names=method_names,
         export_results=False,
         build_report=True,
     )
-    summary = summarize_validation_results(payload["validations"])
-    comparison_report = payload["comparison_report"]
+    validations = list(synthetic_payload["validations"])
+    real_reports: list[dict[str, Any]] = []
+    for dataset_name in real_event_datasets:
+        real_payload = _run_phase3_methods(
+            config=config,
+            project_root=project_root,
+            registry=registry,
+            dataset_name=dataset_name,
+            method_names=method_names,
+            export_results=False,
+            build_report=True,
+        )
+        validations.extend(real_payload["validations"])
+        dataset_record = registry.get_dataset(dataset_name)
+        real_reports.append(
+            {
+                "dataset_name": dataset_name,
+                "time_range": dataset_record.time_range,
+                "report": signal_to_dict(real_payload["comparison_report"]) if real_payload["comparison_report"] else None,
+            }
+        )
+
+    summary = summarize_validation_results(validations)
+    comparison_priority = config.get("signal", {}).get("comparison", {}).get("default_method_priority", [])
+    real_benchmark = _aggregate_real_benchmark(
+        reports=real_reports,
+        comparison_priority=[str(item) for item in comparison_priority],
+        promotion_policy=promotion_policy,
+    )
+    benchmark_summary = {
+        "default_for_training": synthetic_payload["comparison_report"].default_method if synthetic_payload["comparison_report"] else None,
+        "default_for_real_event_benchmark": real_benchmark["default_method"],
+        "promotion_status": real_benchmark["promotion_status"],
+        "promotion_reason": real_benchmark["promotion_reason"],
+        "synthetic_benchmark": signal_to_dict(synthetic_payload["comparison_report"]) if synthetic_payload["comparison_report"] else None,
+        "real_event_benchmark": real_benchmark,
+    }
+    benchmark_path = context.report_dir / "signal_benchmark_summary.json"
+    benchmark_path.write_text(json.dumps(benchmark_summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     write_summary(
         context,
         {
             "status": "ok" if summary["error_count"] == 0 else "failed",
-            "dataset_name": dataset_name,
-            "comparison_path": payload["comparison_path"],
-            "default_method": comparison_report.default_method if comparison_report else None,
+            "comparison_path": synthetic_payload["comparison_path"],
+            "benchmark_path": str(benchmark_path),
+            "default_for_training": benchmark_summary["default_for_training"],
+            "default_for_real_event_benchmark": benchmark_summary["default_for_real_event_benchmark"],
         },
     )
-    logger.info("Built Phase 3 comparison report")
+    logger.info("Built dual-benchmark Phase 3 report")
     _serialize_result(
         {
             "run_id": context.run_id,
-            "dataset_name": dataset_name,
-            "sample_id": payload["sample"].sample_id,
-            "comparison_path": payload["comparison_path"],
-            "comparison_report": signal_to_dict(comparison_report) if comparison_report else None,
+            "synthetic_dataset": synthetic_dataset,
+            "comparison_path": synthetic_payload["comparison_path"],
+            "benchmark_path": str(benchmark_path),
+            "comparison_report": signal_to_dict(synthetic_payload["comparison_report"]) if synthetic_payload["comparison_report"] else None,
+            "benchmark_summary": benchmark_summary,
             "validation_summary": summary,
         }
     )

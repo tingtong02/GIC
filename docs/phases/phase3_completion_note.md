@@ -1,3 +1,7 @@
 # Phase 3 Completion Note
 
-Phase 3 establishes a unified signal frontend framework with raw, low-frequency, FastICA, and sparse baselines. It exports signal-ready assets, comparison reports, and a default frontend recommendation while remaining decoupled from Phase 4 and Phase 5 models.
+Phase 3 hardening status:
+- Method backends upgraded to the minimal scientific stack.
+- INTERMAGNET 2020 BOU/FRD/OTT smoke datasets are ingestible through the standard data layer.
+- Benchmark reporting now distinguishes training default from real-event benchmark default.
+- Real-event default remains provisional because current coverage is only one event window across three stations.

@@ -2,16 +2,16 @@
   "signal": {
     "methods": {
       "fastica": {
-        "method_version": "1.0",
+        "method_version": "1.1",
         "parameters": {
+          "backend": "sklearn_fastica",
           "missing_strategy": "mean",
           "n_components": 3,
-          "max_iter": 200,
+          "max_iter": 300,
           "tol": 0.0001,
-          "alpha": 1.0,
           "random_seed": 13,
-          "selection_window": 3,
-          "quasi_window": 3,
+          "selection_window": 5,
+          "quasi_window": 5,
           "window_enabled": true,
           "window_size": 5,
           "window_stride": 2

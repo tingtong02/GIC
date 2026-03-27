@@ -5,7 +5,7 @@
         "method_version": "1.0",
         "parameters": {
           "missing_strategy": "mean",
-          "smoothing_window": 3,
+          "smoothing_window": 5,
           "window_enabled": true,
           "window_size": 5,
           "window_stride": 2

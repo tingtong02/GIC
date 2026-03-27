@@ -5,11 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "gic"
 version = "0.1.0"
-description = "Phase 0 scaffold for the GIC project"
+description = "Phase-structured GIC research scaffold"
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Codex" }]
-dependencies = []
+dependencies = [
+  "scipy>=1.13,<2",
+  "scikit-learn>=1.5,<2",
+  "pandas>=2.2,<3",
+]
 
 [project.scripts]
 gic = "gic.cli.main:main"

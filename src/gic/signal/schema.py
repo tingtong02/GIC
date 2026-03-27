@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass, field
 from typing import Any
 
 
-SIGNAL_SCHEMA_VERSION = "1.0"
+SIGNAL_SCHEMA_VERSION = "1.1"
 
 
 @dataclass(slots=True)
@@ -102,11 +102,15 @@ class FrontendComparisonReport:
     ranking: list[str]
     default_method: str
     summary_table: list[dict[str, Any]]
-    notes: str = ""
+    benchmark_type: str = 'synthetic'
+    default_scope: str = 'training'
+    promotion_status: str = 'ready'
+    promotion_reason: str = ''
+    notes: str = ''
 
 
 def signal_to_dict(value: Any) -> Any:
-    if hasattr(value, "__dataclass_fields__"):
+    if hasattr(value, '__dataclass_fields__'):
         return asdict(value)
     if isinstance(value, list):
         return [signal_to_dict(item) for item in value]
