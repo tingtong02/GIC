@@ -1,0 +1,12 @@
+{
+  "project": {
+    "name": "gic",
+    "stage": "phase_0"
+  },
+  "runtime": {
+    "mode": "dry_run"
+  },
+  "logging": {
+    "level": "INFO"
+  }
+}

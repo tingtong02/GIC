@@ -1,0 +1,11 @@
+{
+  "paths": {
+    "artifacts_root": "artifacts/runs",
+    "logs_root": "logs",
+    "reports_root": "reports",
+    "config_snapshot_name": "config_snapshot.yaml",
+    "metadata_name": "metadata.json",
+    "summary_name": "summary.json",
+    "log_filename": "run.log"
+  }
+}

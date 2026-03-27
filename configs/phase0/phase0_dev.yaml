@@ -1,0 +1,12 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml"
+  ],
+  "project": {
+    "profile": "phase0_dev"
+  },
+  "runtime": {
+    "command": "run"
+  }
+}
