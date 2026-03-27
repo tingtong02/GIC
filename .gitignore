@@ -20,3 +20,4 @@ data/processed/*
 data/registry/*
 !data/registry/.gitkeep
 notebooks/.ipynb_checkpoints/
+zip

@@ -1,0 +1,61 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "../phase1/phase1_dev.yaml",
+    "methods/fastica.yaml",
+    "methods/lowfreq_baseline.yaml",
+    "methods/sparse_denoise.yaml",
+    "comparisons/default_comparison.yaml"
+  ],
+  "project": {
+    "stage": "phase_3",
+    "profile": "phase3_dev"
+  },
+  "runtime": {
+    "command": "signal-run-frontend"
+  },
+  "signal": {
+    "input_dataset": "sample_geomagnetic_storm_day",
+    "output_root": "data/processed/signal_ready",
+    "window": {
+      "enabled": true,
+      "size": 5,
+      "stride": 2
+    },
+    "synthetic_noise": {
+      "enabled": true,
+      "gaussian_std": 2.0,
+      "sinusoid_amplitude": 6.0,
+      "sinusoid_cycles": 2.0,
+      "reference_lowfreq_window": 3,
+      "random_seed": 7
+    },
+    "methods": {
+      "raw_baseline": {
+        "method_version": "1.0",
+        "parameters": {
+          "missing_strategy": "mean",
+          "window_enabled": true,
+          "window_size": 5,
+          "window_stride": 2
+        }
+      }
+    },
+    "comparison": {
+      "active_methods": [
+        "raw_baseline",
+        "lowfreq_baseline",
+        "fastica",
+        "sparse_denoise"
+      ],
+      "export_report": true,
+      "default_method_priority": [
+        "lowfreq_baseline",
+        "fastica",
+        "sparse_denoise",
+        "raw_baseline"
+      ]
+    }
+  }
+}

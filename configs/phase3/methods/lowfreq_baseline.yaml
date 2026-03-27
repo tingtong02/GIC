@@ -1,0 +1,16 @@
+{
+  "signal": {
+    "methods": {
+      "lowfreq_baseline": {
+        "method_version": "1.0",
+        "parameters": {
+          "missing_strategy": "mean",
+          "smoothing_window": 3,
+          "window_enabled": true,
+          "window_size": 5,
+          "window_stride": 2
+        }
+      }
+    }
+  }
+}

@@ -25,13 +25,25 @@ from gic.physics.postprocess import summarize_solution
 from gic.physics.scenarios import generate_scenarios
 from gic.physics.solver import solve_series, solve_snapshot
 from gic.physics.validation import validate_physics_case, validate_solution
+from gic.signal import (
+    FrontendConfig,
+    build_comparison_report,
+    build_frontend,
+    build_signal_sample_from_timeseries,
+    export_comparison_report,
+    export_frontend_result,
+    signal_to_dict,
+    validate_frontend_result,
+    validate_signal_sample,
+)
 from gic.utils.logging_utils import configure_logger
-from gic.utils.paths import ensure_directory, resolve_path, resolve_project_root
+from gic.utils.paths import ensure_directory, resolve_project_root
 from gic.utils.runtime import initialize_run, write_summary
 
 DEFAULT_CONFIG = "configs/phase0/phase0_dev.yaml"
 DEFAULT_PHASE1_CONFIG = "configs/phase1/phase1_dev.yaml"
 DEFAULT_PHASE2_CONFIG = "configs/phase2/phase2_dev.yaml"
+DEFAULT_PHASE3_CONFIG = "configs/phase3/phase3_dev.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -61,6 +73,17 @@ def _common_physics_parser(parser: argparse.ArgumentParser) -> None:
         help="Optional project root override for registry, processed outputs, and reports",
     )
     parser.add_argument("--scenario-mode", default=None, help="Optional scenario mode override")
+
+
+def _common_signal_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE3_CONFIG, help="Path to the Phase 3 config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for registry, processed outputs, and reports",
+    )
+    parser.add_argument("--dataset-name", default=None, help="Optional Phase 3 dataset override")
+    parser.add_argument("--method", default=None, help="Optional frontend method override")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -126,6 +149,26 @@ def _build_parser() -> argparse.ArgumentParser:
     _common_physics_parser(physics_validate_solution)
     physics_validate_solution.set_defaults(func=cmd_physics_validate_solution)
 
+    signal_run_frontend = subparsers.add_parser("signal-run-frontend", help="Run one Phase 3 frontend method")
+    _common_signal_parser(signal_run_frontend)
+    signal_run_frontend.set_defaults(func=cmd_signal_run_frontend)
+
+    signal_compare_frontends = subparsers.add_parser("signal-compare-frontends", help="Compare active Phase 3 frontend methods")
+    _common_signal_parser(signal_compare_frontends)
+    signal_compare_frontends.set_defaults(func=cmd_signal_compare_frontends)
+
+    signal_export_features = subparsers.add_parser("signal-export-features", help="Export signal-ready assets for Phase 3 methods")
+    _common_signal_parser(signal_export_features)
+    signal_export_features.set_defaults(func=cmd_signal_export_features)
+
+    signal_validate_input = subparsers.add_parser("signal-validate-input", help="Validate Phase 3 signal input preparation")
+    _common_signal_parser(signal_validate_input)
+    signal_validate_input.set_defaults(func=cmd_signal_validate_input)
+
+    signal_build_report = subparsers.add_parser("signal-build-report", help="Build a Phase 3 comparison report")
+    _common_signal_parser(signal_build_report)
+    signal_build_report.set_defaults(func=cmd_signal_build_report)
+
     return parser
 
 
@@ -159,6 +202,19 @@ def _load_phase2_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
     return config, project_root, registry
 
 
+def _load_phase3_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path, RegistryStore]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 3 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 3 config requires data.registry_root")
+    registry = RegistryStore(project_root=project_root, registry_root=registry_root)
+    return config, project_root, registry
+
+
 def _convert_dataset(
     *,
     project_root: Path,
@@ -168,7 +224,7 @@ def _convert_dataset(
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     dataset = registry.get_dataset(dataset_name)
     source = registry.get_source(dataset.source_name)
-    interim_root = resolve_path(project_root, config["data"]["interim_root"])
+    interim_root = project_root / config["data"]["interim_root"]
     if source.source_type == "grid_case":
         asset, manifest = MatpowerLoader(project_root).load(dataset, source)
         output_dir = ensure_directory(interim_root / "grid_cases")
@@ -273,6 +329,133 @@ def _solve_physics_mode(
             }
         )
     return outputs, reports
+
+
+def _phase3_dataset_name(args: argparse.Namespace, config: dict[str, Any]) -> str:
+    signal_cfg = config.get("signal")
+    if not isinstance(signal_cfg, dict):
+        raise ValueError("Phase 3 config requires a signal section")
+    dataset_name = args.dataset_name or signal_cfg.get("input_dataset")
+    if not isinstance(dataset_name, str) or not dataset_name:
+        raise ValueError("Phase 3 requires signal.input_dataset or --dataset-name")
+    return dataset_name
+
+
+def _build_phase3_frontend_config(config: dict[str, Any], method_name: str) -> FrontendConfig:
+    signal_cfg = config.get("signal")
+    if not isinstance(signal_cfg, dict):
+        raise ValueError("Phase 3 config requires a signal section")
+    methods_cfg = signal_cfg.get("methods")
+    if not isinstance(methods_cfg, dict) or method_name not in methods_cfg:
+        raise ValueError(f"Phase 3 config missing method configuration for {method_name}")
+    method_cfg = methods_cfg[method_name]
+    if not isinstance(method_cfg, dict):
+        raise ValueError(f"Method config must be a mapping: {method_name}")
+    parameters = method_cfg.get("parameters", {})
+    if not isinstance(parameters, dict):
+        raise ValueError(f"Method parameters must be a mapping: {method_name}")
+    return FrontendConfig(
+        method_name=method_name,
+        method_version=str(method_cfg.get("method_version", "1.0")),
+        parameters=dict(parameters),
+    )
+
+
+def _phase3_active_methods(args: argparse.Namespace, config: dict[str, Any]) -> list[str]:
+    if args.method:
+        return [args.method]
+    signal_cfg = config.get("signal")
+    if not isinstance(signal_cfg, dict):
+        raise ValueError("Phase 3 config requires a signal section")
+    comparison_cfg = signal_cfg.get("comparison", {})
+    if not isinstance(comparison_cfg, dict):
+        comparison_cfg = {}
+    active_methods = comparison_cfg.get("active_methods")
+    if not isinstance(active_methods, list) or not active_methods:
+        raise ValueError("Phase 3 config requires signal.comparison.active_methods")
+    return [str(item) for item in active_methods]
+
+
+def _phase3_signal_sample(
+    *,
+    config: dict[str, Any],
+    project_root: Path,
+    registry: RegistryStore,
+    dataset_name: str,
+):
+    signal_cfg = config.get("signal")
+    if not isinstance(signal_cfg, dict):
+        raise ValueError("Phase 3 config requires a signal section")
+    series, _ = _load_geomagnetic_series_from_registry(project_root, registry, dataset_name)
+    return build_signal_sample_from_timeseries(series, signal_cfg)
+
+
+def _run_phase3_methods(
+    *,
+    config: dict[str, Any],
+    project_root: Path,
+    registry: RegistryStore,
+    dataset_name: str,
+    method_names: list[str],
+    export_results: bool,
+    build_report: bool,
+) -> dict[str, Any]:
+    signal_cfg = config["signal"]
+    sample = _phase3_signal_sample(
+        config=config,
+        project_root=project_root,
+        registry=registry,
+        dataset_name=dataset_name,
+    )
+    sample_validation = validate_signal_sample(sample)
+    results = []
+    exports = []
+    validations = [sample_validation]
+    if sample_validation["ok"]:
+        for method_name in method_names:
+            frontend = build_frontend(method_name)
+            frontend_config = _build_phase3_frontend_config(config, method_name)
+            result = frontend.run(sample, frontend_config)
+            result_validation = validate_frontend_result(result)
+            validations.append(result_validation)
+            results.append(result)
+            if export_results:
+                exports.append(
+                    {
+                        "method_name": method_name,
+                        "paths": export_frontend_result(
+                            project_root=project_root,
+                            signal_config=signal_cfg,
+                            signal_sample=sample,
+                            result=result,
+                        ),
+                    }
+                )
+
+    comparison_report = None
+    comparison_path = None
+    if build_report and results:
+        comparison_report = build_comparison_report(
+            sample_id=sample.sample_id,
+            results=results,
+            comparison_config=signal_cfg.get("comparison", {}),
+        )
+        if signal_cfg.get("comparison", {}).get("export_report", True):
+            comparison_path = export_comparison_report(
+                project_root=project_root,
+                signal_config=signal_cfg,
+                comparison_report=comparison_report,
+            )
+
+    return {
+        "sample": sample,
+        "sample_validation": sample_validation,
+        "results": results,
+        "exports": exports,
+        "validations": validations,
+        "comparison_report": comparison_report,
+        "comparison_path": comparison_path,
+    }
 
 
 def cmd_show_config(args: argparse.Namespace) -> int:
@@ -514,9 +697,10 @@ def cmd_physics_solve_series(args: argparse.Namespace) -> int:
 
 def cmd_physics_generate_scenarios(args: argparse.Namespace) -> int:
     config, project_root, _ = _load_phase2_context(args)
-    scenarios = generate_scenarios(config, args.scenario_mode or config["scenario"].get("type", "uniform_field"))
+    scenario_mode = args.scenario_mode or config["scenario"].get("type", "uniform_field")
+    scenarios = generate_scenarios(config, scenario_mode)
     datasets_root = ensure_directory(project_root / config["physics"]["outputs"]["datasets_root"])
-    destination = datasets_root / f"generated_{(args.scenario_mode or config['scenario'].get('type', 'uniform_field'))}_scenarios.json"
+    destination = datasets_root / f"generated_{scenario_mode}_scenarios.json"
     destination.write_text(json.dumps([to_dict(item) for item in scenarios], indent=2, sort_keys=True) + "\n", encoding="utf-8")
     _serialize_result({"scenario_count": len(scenarios), "output_path": str(destination)})
     return 0
@@ -559,15 +743,210 @@ def cmd_physics_validate_solution(args: argparse.Namespace) -> int:
         registry=registry,
         scenario_mode="uniform_field",
     )
-    summary = summarize_validation_results([
-        reports[0]["physics_case"],
-        *reports[0]["solutions"],
-    ])
+    summary = summarize_validation_results([reports[0]["physics_case"], *reports[0]["solutions"]])
     report_path = write_validation_report(summary, context.report_dir / "physics_validation_report.json")
     write_summary(context, {"status": "ok", "report_path": str(report_path), "outputs": outputs})
     logger.info("Physics validation report written to %s", report_path)
     _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "summary": summary})
     return 0
+
+
+def cmd_signal_validate_input(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase3_context(args)
+    dataset_name = _phase3_dataset_name(args, config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="signal-validate-input",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase3.validate", config["logging"]["level"], context.log_file)
+    sample = _phase3_signal_sample(config=config, project_root=project_root, registry=registry, dataset_name=dataset_name)
+    sample_validation = validate_signal_sample(sample)
+    summary = summarize_validation_results([sample_validation])
+    report_path = write_validation_report(summary, context.report_dir / "signal_validation_report.json")
+    write_summary(context, {"status": "ok" if sample_validation["ok"] else "failed", "dataset_name": dataset_name, "report_path": str(report_path)})
+    logger.info("Signal input validation report written to %s", report_path)
+    _serialize_result({
+        "run_id": context.run_id,
+        "dataset_name": dataset_name,
+        "sample_id": sample.sample_id,
+        "report_path": str(report_path),
+        "summary": summary,
+    })
+    return 0 if sample_validation["ok"] else 1
+
+
+def cmd_signal_run_frontend(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase3_context(args)
+    dataset_name = _phase3_dataset_name(args, config)
+    method_names = _phase3_active_methods(args, config)[:1]
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="signal-run-frontend",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase3.run", config["logging"]["level"], context.log_file)
+    payload = _run_phase3_methods(
+        config=config,
+        project_root=project_root,
+        registry=registry,
+        dataset_name=dataset_name,
+        method_names=method_names,
+        export_results=True,
+        build_report=False,
+    )
+    summary = summarize_validation_results(payload["validations"])
+    write_summary(
+        context,
+        {
+            "status": "ok" if summary["error_count"] == 0 else "failed",
+            "dataset_name": dataset_name,
+            "methods": method_names,
+            "exports": payload["exports"],
+        },
+    )
+    logger.info("Completed signal frontend run for %s", method_names[0])
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": dataset_name,
+            "sample_id": payload["sample"].sample_id,
+            "methods": method_names,
+            "exports": payload["exports"],
+            "validation_summary": summary,
+            "result": signal_to_dict(payload["results"][0]) if payload["results"] else None,
+        }
+    )
+    return 0 if summary["error_count"] == 0 else 1
+
+
+def cmd_signal_compare_frontends(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase3_context(args)
+    dataset_name = _phase3_dataset_name(args, config)
+    method_names = _phase3_active_methods(args, config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="signal-compare-frontends",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase3.compare", config["logging"]["level"], context.log_file)
+    payload = _run_phase3_methods(
+        config=config,
+        project_root=project_root,
+        registry=registry,
+        dataset_name=dataset_name,
+        method_names=method_names,
+        export_results=True,
+        build_report=True,
+    )
+    summary = summarize_validation_results(payload["validations"])
+    comparison_report = payload["comparison_report"]
+    write_summary(
+        context,
+        {
+            "status": "ok" if summary["error_count"] == 0 else "failed",
+            "dataset_name": dataset_name,
+            "default_method": comparison_report.default_method if comparison_report else None,
+            "comparison_path": payload["comparison_path"],
+        },
+    )
+    logger.info("Completed signal frontend comparison across %d methods", len(method_names))
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": dataset_name,
+            "sample_id": payload["sample"].sample_id,
+            "methods": method_names,
+            "exports": payload["exports"],
+            "comparison_path": payload["comparison_path"],
+            "comparison_report": signal_to_dict(comparison_report) if comparison_report else None,
+            "validation_summary": summary,
+        }
+    )
+    return 0 if summary["error_count"] == 0 else 1
+
+
+def cmd_signal_export_features(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase3_context(args)
+    dataset_name = _phase3_dataset_name(args, config)
+    method_names = _phase3_active_methods(args, config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="signal-export-features",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase3.export", config["logging"]["level"], context.log_file)
+    payload = _run_phase3_methods(
+        config=config,
+        project_root=project_root,
+        registry=registry,
+        dataset_name=dataset_name,
+        method_names=method_names,
+        export_results=True,
+        build_report=False,
+    )
+    summary = summarize_validation_results(payload["validations"])
+    write_summary(context, {"status": "ok" if summary["error_count"] == 0 else "failed", "dataset_name": dataset_name, "exports": payload["exports"]})
+    logger.info("Exported signal-ready assets for %d methods", len(method_names))
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": dataset_name,
+            "sample_id": payload["sample"].sample_id,
+            "exports": payload["exports"],
+            "validation_summary": summary,
+        }
+    )
+    return 0 if summary["error_count"] == 0 else 1
+
+
+def cmd_signal_build_report(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase3_context(args)
+    dataset_name = _phase3_dataset_name(args, config)
+    method_names = _phase3_active_methods(args, config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="signal-build-report",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase3.report", config["logging"]["level"], context.log_file)
+    payload = _run_phase3_methods(
+        config=config,
+        project_root=project_root,
+        registry=registry,
+        dataset_name=dataset_name,
+        method_names=method_names,
+        export_results=False,
+        build_report=True,
+    )
+    summary = summarize_validation_results(payload["validations"])
+    comparison_report = payload["comparison_report"]
+    write_summary(
+        context,
+        {
+            "status": "ok" if summary["error_count"] == 0 else "failed",
+            "dataset_name": dataset_name,
+            "comparison_path": payload["comparison_path"],
+            "default_method": comparison_report.default_method if comparison_report else None,
+        },
+    )
+    logger.info("Built Phase 3 comparison report")
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": dataset_name,
+            "sample_id": payload["sample"].sample_id,
+            "comparison_path": payload["comparison_path"],
+            "comparison_report": signal_to_dict(comparison_report) if comparison_report else None,
+            "validation_summary": summary,
+        }
+    )
+    return 0 if summary["error_count"] == 0 else 1
 
 
 def main(argv: list[str] | None = None) -> int:

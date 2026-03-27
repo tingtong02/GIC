@@ -1,0 +1,18 @@
+{
+  "signal": {
+    "methods": {
+      "sparse_denoise": {
+        "method_version": "1.0",
+        "parameters": {
+          "missing_strategy": "mean",
+          "trend_window": 3,
+          "refine_window": 3,
+          "sparsity_lambda": 1.5,
+          "window_enabled": true,
+          "window_size": 5,
+          "window_stride": 2
+        }
+      }
+    }
+  }
+}
