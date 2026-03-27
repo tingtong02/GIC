@@ -1,0 +1,9 @@
+{
+  "scenario": {
+    "type": "uniform_field",
+    "case_dataset": "matpower_case118_sample",
+    "amplitude": 1.0,
+    "direction_deg": 0.0,
+    "time_interval_seconds": 60
+  }
+}

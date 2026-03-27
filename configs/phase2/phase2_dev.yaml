@@ -1,0 +1,64 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "../phase1/phase1_dev.yaml"
+  ],
+  "project": {
+    "stage": "phase_2",
+    "profile": "phase2_dev"
+  },
+  "runtime": {
+    "command": "physics-solve-snapshot"
+  },
+  "physics": {
+    "solver": {
+      "mode": "dc_baseline",
+      "fail_on_missing_required_fields": true,
+      "allow_assumption_fill": true,
+      "grounding_resistance_ohm": 1.0,
+      "default_transformer_resistance_ohm": 0.5
+    },
+    "field": {
+      "default_units": "V_per_km",
+      "representation": "uniform_xy",
+      "geomagnetic_scale_v_per_km_per_nt": 0.01
+    },
+    "assumptions": {
+      "line_overrides": {
+        "line_1": {
+          "length_km": 80.0,
+          "azimuth_deg": 0.0
+        },
+        "line_2": {
+          "length_km": 120.0,
+          "azimuth_deg": 45.0
+        }
+      }
+    },
+    "outputs": {
+      "export_line_level": true,
+      "export_bus_level": true,
+      "export_transformer_level": true,
+      "write_manifest": true,
+      "physics_ready_root": "data/processed/physics_ready",
+      "datasets_root": "data/processed/datasets",
+      "manifests_root": "data/processed/manifests"
+    }
+  },
+  "scenario": {
+    "type": "uniform_field",
+    "case_dataset": "matpower_case118_sample",
+    "timeseries_dataset": "sample_geomagnetic_storm_day",
+    "amplitude": 1.0,
+    "direction_deg": 0.0,
+    "time_interval_seconds": 60,
+    "output_levels": [
+      "line",
+      "bus",
+      "transformer"
+    ],
+    "amplitude_sweep": [0.5, 1.0, 2.0],
+    "direction_sweep": [0.0, 45.0, 90.0]
+  }
+}

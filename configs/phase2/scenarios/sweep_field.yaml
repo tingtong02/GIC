@@ -1,0 +1,9 @@
+{
+  "scenario": {
+    "type": "sweep_field",
+    "case_dataset": "matpower_case118_sample",
+    "amplitude_sweep": [0.5, 1.0, 2.0],
+    "direction_sweep": [0.0, 45.0, 90.0],
+    "time_interval_seconds": 60
+  }
+}

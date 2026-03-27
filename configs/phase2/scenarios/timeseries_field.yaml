@@ -1,0 +1,8 @@
+{
+  "scenario": {
+    "type": "timeseries_field",
+    "case_dataset": "matpower_case118_sample",
+    "timeseries_dataset": "sample_geomagnetic_storm_day",
+    "time_interval_seconds": 60
+  }
+}
