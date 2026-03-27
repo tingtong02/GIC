@@ -30,8 +30,8 @@
     "physics_feature_name": "physics.adjacent_induced_abs_sum"
   },
   "training": {
-    "batch_size": 2,
-    "epochs": 40,
+    "batch_size": 1,
+    "epochs": 120,
     "lr": 0.001,
     "weight_decay": 0.0,
     "seed": 42

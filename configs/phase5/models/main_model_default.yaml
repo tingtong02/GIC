@@ -1,12 +1,12 @@
 {
   "model": {
     "graph_backbone": "graphsage",
-    "graph_layers": 2,
-    "hidden_dim": 16,
+    "graph_layers": 3,
+    "hidden_dim": 64,
     "dropout": 0.0,
     "temporal_encoder": "gru",
     "physics_fusion": "residual",
-    "use_signal_features": true,
+    "use_signal_features": false,
     "use_physics_features": true,
     "use_residual": false
   },

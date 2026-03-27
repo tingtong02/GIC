@@ -1,0 +1,9 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_residual_default"
+  },
+  "model": {
+    "use_residual": true
+  }
+}

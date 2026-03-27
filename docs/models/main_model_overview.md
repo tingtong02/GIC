@@ -22,11 +22,21 @@
 
 ## Default Configuration
 - Graph backbone: `graphsage`
+- Graph layers: `3`
+- Hidden dimension: `64`
 - Temporal encoder: `gru`
-- Physics fusion: normalized physics feature input
+- Physics fusion: normalized physics proxy feature input
+- Signal-ready features in default profile: `false`
 - Residual enabled: `false`
 - Enabled heads: regression + hotspot
 - Default loss: Huber + hotspot BCE; physics penalty remains available but is off in the default dev profile
+- Default training budget: batch size `1`, epochs `120`, learning rate `1e-3`
+
+## Current Benchmark Status
+- The optimized Phase 5 default profile now beats the Phase 4 best baseline on the current controlled graph-ready benchmark.
+- The current default still stays within the intended Phase 5 design: temporal encoder on, graph backbone on, physics input on, hotspot task on.
+- Signal-ready inputs remain supported and are still part of the ablation suite, but the current small benchmark favors turning them off in the default dev profile.
+- Because the benchmark is still intentionally small, this should be read as strong stage-level evidence, not as a claim of large-sample production robustness.
 
 ## Known Limitations
 - Current temporal dataset is intentionally small, so rankings and gains should be read as controlled baseline evidence rather than large-sample claims.

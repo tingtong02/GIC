@@ -28,6 +28,7 @@ class MainModelTrainingResult:
     history_path: str
     best_epoch: int
     input_dim: int
+    feature_names: list[str]
     train_example_count: int
     val_example_count: int
     test_example_count: int
@@ -48,19 +49,43 @@ class TemporalSequenceDataset(Dataset[TemporalGraphSequenceExample]):
         return self.examples[index]
 
 
-
 def _set_seed(seed: int) -> None:
     random.seed(seed)
     torch.manual_seed(seed)
 
 
+def _select_feature_indices(feature_names: list[str], config: dict[str, Any]) -> list[int]:
+    model_cfg = dict(config.get('model', {}))
+    use_signal_features = bool(model_cfg.get('use_signal_features', True))
+    use_physics_features = bool(model_cfg.get('use_physics_features', True))
+    indices: list[int] = []
+    for index, name in enumerate(feature_names):
+        if name.startswith('signal.') and not use_signal_features:
+            continue
+        if name.startswith('physics.') and not use_physics_features:
+            continue
+        indices.append(index)
+    if not indices:
+        raise ValueError('Phase 5 feature selection removed every input feature')
+    return indices
 
-def _collate_temporal_examples(items: list[TemporalGraphSequenceExample]) -> MainModelInputBundle:
+
+def _filter_node_features(node_features: list[list[float]], feature_indices: list[int]) -> list[list[float]]:
+    return [[row[index] for index in feature_indices] for row in node_features]
+
+
+def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], feature_indices: list[int]) -> MainModelInputBundle:
     hotspot_targets = None
     if items and items[0].hotspot_targets is not None:
         hotspot_targets = torch.tensor([item.hotspot_targets for item in items], dtype=torch.float32)
     return MainModelInputBundle(
-        sequence_features=torch.tensor([item.sequence_features for item in items], dtype=torch.float32),
+        sequence_features=torch.tensor(
+            [
+                [_filter_node_features(step_features, feature_indices) for step_features in item.sequence_features]
+                for item in items
+            ],
+            dtype=torch.float32,
+        ),
         adjacency=torch.tensor([item.adjacency for item in items], dtype=torch.float32),
         regression_targets=torch.tensor([item.regression_targets for item in items], dtype=torch.float32),
         hotspot_targets=hotspot_targets,
@@ -70,22 +95,19 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample]) -> Mai
     )
 
 
-
-def _build_loader(examples: list[TemporalGraphSequenceExample], batch_size: int, shuffle: bool) -> DataLoader[Any]:
+def _build_loader(examples: list[TemporalGraphSequenceExample], batch_size: int, shuffle: bool, feature_indices: list[int]) -> DataLoader[Any]:
     return DataLoader(
         TemporalSequenceDataset(examples),
         batch_size=max(1, batch_size),
         shuffle=shuffle,
-        collate_fn=_collate_temporal_examples,
+        collate_fn=lambda items: _collate_temporal_examples(items, feature_indices),
     )
-
 
 
 def _sigmoid(values: torch.Tensor | None) -> torch.Tensor | None:
     if values is None:
         return None
     return torch.sigmoid(values)
-
 
 
 def prediction_rows_from_main_output(output: MainModelOutputBundle) -> list[dict[str, Any]]:
@@ -127,13 +149,11 @@ def prediction_rows_from_main_output(output: MainModelOutputBundle) -> list[dict
     return rows
 
 
-
 def prediction_rows_from_main_outputs(outputs: list[MainModelOutputBundle]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for output in outputs:
         rows.extend(prediction_rows_from_main_output(output))
     return rows
-
 
 
 def _mean_component(history_rows: list[dict[str, float]]) -> dict[str, float]:
@@ -146,13 +166,11 @@ def _mean_component(history_rows: list[dict[str, float]]) -> dict[str, float]:
     }
 
 
-
 def _selection_score(metrics: dict[str, Any]) -> float:
     hidden_count = int(metrics.get('hidden_row_count', 0))
     if hidden_count > 0:
         return float(metrics.get('hidden_only', {}).get('mae', metrics.get('overall', {}).get('mae', math.inf)))
     return float(metrics.get('overall', {}).get('mae', math.inf))
-
 
 
 def _run_training_epoch(model: nn.Module, loader: DataLoader[Any], optimizer: Adam, composer: LossComposer, device: torch.device) -> dict[str, float]:
@@ -169,7 +187,6 @@ def _run_training_epoch(model: nn.Module, loader: DataLoader[Any], optimizer: Ad
     return _mean_component(batch_components)
 
 
-
 def _run_inference(model: nn.Module, loader: DataLoader[Any], device: torch.device) -> list[MainModelOutputBundle]:
     model.eval()
     outputs: list[MainModelOutputBundle] = []
@@ -178,7 +195,6 @@ def _run_inference(model: nn.Module, loader: DataLoader[Any], device: torch.devi
             main_batch = batch.to(device)
             outputs.append(model.predict_batch(main_batch))
     return outputs
-
 
 
 def _empty_metrics() -> dict[str, Any]:
@@ -190,7 +206,6 @@ def _empty_metrics() -> dict[str, Any]:
         'hidden_only': {'mae': 0.0, 'rmse': 0.0, 'correlation': 0.0},
         'observed_only': {'mae': 0.0, 'rmse': 0.0, 'correlation': 0.0},
     }
-
 
 
 def train_main_model(
@@ -222,7 +237,9 @@ def train_main_model(
     if not val_examples:
         raise ValueError(f'Validation split is empty for temporal examples: {dataset_path}')
 
-    input_dim = len(train_examples[0].sequence_features[0][0])
+    feature_indices = _select_feature_indices(train_examples[0].feature_names, config)
+    active_feature_names = [train_examples[0].feature_names[index] for index in feature_indices]
+    input_dim = len(active_feature_names)
     model = build_main_model(config, input_dim=input_dim)
     composer = LossComposer(config)
     device = torch.device('cpu')
@@ -230,9 +247,9 @@ def train_main_model(
     composer.to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 
-    train_loader = _build_loader(train_examples, batch_size=batch_size, shuffle=True)
-    val_loader = _build_loader(val_examples, batch_size=batch_size, shuffle=False)
-    test_loader = _build_loader(test_examples, batch_size=batch_size, shuffle=False) if test_examples else None
+    train_loader = _build_loader(train_examples, batch_size=batch_size, shuffle=True, feature_indices=feature_indices)
+    val_loader = _build_loader(val_examples, batch_size=batch_size, shuffle=False, feature_indices=feature_indices)
+    test_loader = _build_loader(test_examples, batch_size=batch_size, shuffle=False, feature_indices=feature_indices) if test_examples else None
 
     output_root = Path(output_dir)
     output_root.mkdir(parents=True, exist_ok=True)
@@ -258,6 +275,7 @@ def train_main_model(
                 'validation_metrics': val_metrics,
                 'validation_hotspot_metrics': val_hotspot_metrics,
                 'selection_score': score,
+                'active_feature_names': active_feature_names,
             }
         )
         if score <= best_score:
@@ -273,6 +291,7 @@ def train_main_model(
                 metadata={
                     'dataset_path': dataset_path,
                     'input_dim': input_dim,
+                    'active_feature_names': active_feature_names,
                     'target_level': target_level,
                     'training_config': training_cfg,
                     'model_config': dict(config.get('model', {})),
@@ -297,6 +316,7 @@ def train_main_model(
         history_path=str(history_path),
         best_epoch=best_epoch,
         input_dim=input_dim,
+        feature_names=active_feature_names,
         train_example_count=len(train_examples),
         val_example_count=len(val_examples),
         test_example_count=len(test_examples),
@@ -305,7 +325,6 @@ def train_main_model(
         test_metrics=test_metrics,
         test_hotspot_metrics=test_hotspot_metrics,
     )
-
 
 
 def evaluate_main_model(
@@ -336,12 +355,14 @@ def evaluate_main_model(
     )
     if not examples:
         raise ValueError(f'Split {split} is empty for temporal examples: {dataset_path}')
-    input_dim = len(examples[0].sequence_features[0][0])
+    feature_indices = _select_feature_indices(examples[0].feature_names, config)
+    active_feature_names = [examples[0].feature_names[index] for index in feature_indices]
+    input_dim = len(active_feature_names)
     model = build_main_model(config, input_dim=input_dim)
     load_checkpoint(checkpoint_path, model=model, map_location='cpu')
     device = torch.device('cpu')
     model.to(device)
-    loader = _build_loader(examples, batch_size=batch_size, shuffle=False)
+    loader = _build_loader(examples, batch_size=batch_size, shuffle=False, feature_indices=feature_indices)
     outputs = _run_inference(model, loader, device)
     rows = prediction_rows_from_main_outputs(outputs)
     metrics = summarize_prediction_rows(rows)
@@ -351,6 +372,7 @@ def evaluate_main_model(
         'checkpoint_path': str(Path(checkpoint_path).resolve()),
         'split': split,
         'row_count': len(rows),
+        'active_feature_names': active_feature_names,
         'rows': rows,
         'metrics': metrics,
         'hotspot_metrics': hotspot_metrics,

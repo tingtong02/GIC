@@ -1,6 +1,6 @@
 {
   "ablation": {
-    "training_epochs": 20,
+    "training_epochs": 120,
     "phase4_report_path": "reports/phase_4_20260327T140729Z_1355128f/phase4_baseline_report.json",
     "variants": [
       {
@@ -10,6 +10,18 @@
       {
         "name": "no_physics",
         "config_path": "models/no_physics.yaml"
+      },
+      {
+        "name": "residual_default",
+        "config_path": "models/residual_default.yaml"
+      },
+      {
+        "name": "with_physics_penalty",
+        "config_path": "models/with_physics_penalty.yaml"
+      },
+      {
+        "name": "signal_on",
+        "config_path": "models/signal_on.yaml"
       },
       {
         "name": "no_temporal",

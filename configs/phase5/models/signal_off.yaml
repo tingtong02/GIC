@@ -1,0 +1,9 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_signal_off"
+  },
+  "model": {
+    "use_signal_features": false
+  }
+}

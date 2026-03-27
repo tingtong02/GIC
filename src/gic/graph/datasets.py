@@ -80,12 +80,13 @@ class TemporalGraphSequenceExample:
     target_graph_id: str
     sequence_graph_ids: list[str]
     node_ids: list[str]
-    sequence_features: list[list[list[float]]]
-    adjacency: list[list[float]]
-    regression_targets: list[float]
-    hotspot_targets: list[float]
-    observed_mask: list[bool]
-    physics_baseline: list[float]
+    feature_names: list[str] = field(default_factory=list)
+    sequence_features: list[list[list[float]]] = field(default_factory=list)
+    adjacency: list[list[float]] = field(default_factory=list)
+    regression_targets: list[float] = field(default_factory=list)
+    hotspot_targets: list[float] = field(default_factory=list)
+    observed_mask: list[bool] = field(default_factory=list)
+    physics_baseline: list[float] = field(default_factory=list)
     metadata: list[dict[str, Any]] = field(default_factory=list)
 
 
@@ -284,6 +285,7 @@ def build_temporal_graph_examples(
                     target_graph_id=target_sample.graph_id,
                     sequence_graph_ids=[sample.graph_id for sample in window],
                     node_ids=node_ids,
+                    feature_names=list(feature_names),
                     sequence_features=[
                         [list(sample.feature_bundle.node_features[node_id]) for node_id in node_ids]
                         for sample in window

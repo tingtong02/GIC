@@ -1,0 +1,218 @@
+[
+  {
+    "name": "23_h64_layers3_drop00",
+    "hidden_dim": 64,
+    "graph_layers": 3,
+    "dropout": 0.0,
+    "best_epoch": 71,
+    "val_hidden_mae": 55.883026123046875,
+    "test_hidden_mae": 17.476945161819458
+  },
+  {
+    "name": "11_h32_layers3_drop00",
+    "hidden_dim": 32,
+    "graph_layers": 3,
+    "dropout": 0.0,
+    "best_epoch": 110,
+    "val_hidden_mae": 63.72927188873291,
+    "test_hidden_mae": 11.494795560836792
+  },
+  {
+    "name": "22_h64_layers2_drop01",
+    "hidden_dim": 64,
+    "graph_layers": 2,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 68.20429611206055,
+    "test_hidden_mae": 2.149254620075226
+  },
+  {
+    "name": "17_h48_layers3_drop00",
+    "hidden_dim": 48,
+    "graph_layers": 3,
+    "dropout": 0.0,
+    "best_epoch": 76,
+    "val_hidden_mae": 68.91107368469238,
+    "test_hidden_mae": 5.957038879394531
+  },
+  {
+    "name": "18_h48_layers3_drop01",
+    "hidden_dim": 48,
+    "graph_layers": 3,
+    "dropout": 0.1,
+    "best_epoch": 110,
+    "val_hidden_mae": 70.07165336608887,
+    "test_hidden_mae": 23.138845205307007
+  },
+  {
+    "name": "21_h64_layers2_drop00",
+    "hidden_dim": 64,
+    "graph_layers": 2,
+    "dropout": 0.0,
+    "best_epoch": 61,
+    "val_hidden_mae": 70.630859375,
+    "test_hidden_mae": 5.275196313858032
+  },
+  {
+    "name": "20_h64_layers1_drop01",
+    "hidden_dim": 64,
+    "graph_layers": 1,
+    "dropout": 0.1,
+    "best_epoch": 114,
+    "val_hidden_mae": 72.80184555053711,
+    "test_hidden_mae": 1.4356960225850344
+  },
+  {
+    "name": "16_h48_layers2_drop01",
+    "hidden_dim": 48,
+    "graph_layers": 2,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 74.70676231384277,
+    "test_hidden_mae": 8.278495073318481
+  },
+  {
+    "name": "15_h48_layers2_drop00",
+    "hidden_dim": 48,
+    "graph_layers": 2,
+    "dropout": 0.0,
+    "best_epoch": 86,
+    "val_hidden_mae": 75.4772777557373,
+    "test_hidden_mae": 5.9012534618377686
+  },
+  {
+    "name": "24_h64_layers3_drop01",
+    "hidden_dim": 64,
+    "graph_layers": 3,
+    "dropout": 0.1,
+    "best_epoch": 119,
+    "val_hidden_mae": 78.84016227722168,
+    "test_hidden_mae": 15.42153525352478
+  },
+  {
+    "name": "19_h64_layers1_drop00",
+    "hidden_dim": 64,
+    "graph_layers": 1,
+    "dropout": 0.0,
+    "best_epoch": 96,
+    "val_hidden_mae": 82.01335716247559,
+    "test_hidden_mae": 3.3651013374328613
+  },
+  {
+    "name": "09_h32_layers2_drop00",
+    "hidden_dim": 32,
+    "graph_layers": 2,
+    "dropout": 0.0,
+    "best_epoch": 110,
+    "val_hidden_mae": 82.15431022644043,
+    "test_hidden_mae": 7.049753427505493
+  },
+  {
+    "name": "13_h48_layers1_drop00",
+    "hidden_dim": 48,
+    "graph_layers": 1,
+    "dropout": 0.0,
+    "best_epoch": 120,
+    "val_hidden_mae": 86.42050170898438,
+    "test_hidden_mae": 6.639883995056152
+  },
+  {
+    "name": "14_h48_layers1_drop01",
+    "hidden_dim": 48,
+    "graph_layers": 1,
+    "dropout": 0.1,
+    "best_epoch": 116,
+    "val_hidden_mae": 88.92490482330322,
+    "test_hidden_mae": 27.557310581207275
+  },
+  {
+    "name": "12_h32_layers3_drop01",
+    "hidden_dim": 32,
+    "graph_layers": 3,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 90.96615028381348,
+    "test_hidden_mae": 32.19033169746399
+  },
+  {
+    "name": "10_h32_layers2_drop01",
+    "hidden_dim": 32,
+    "graph_layers": 2,
+    "dropout": 0.1,
+    "best_epoch": 119,
+    "val_hidden_mae": 92.56935977935791,
+    "test_hidden_mae": 31.31641125679016
+  },
+  {
+    "name": "07_h32_layers1_drop00",
+    "hidden_dim": 32,
+    "graph_layers": 1,
+    "dropout": 0.0,
+    "best_epoch": 112,
+    "val_hidden_mae": 92.91708183288574,
+    "test_hidden_mae": 14.59864330291748
+  },
+  {
+    "name": "05_h24_layers3_drop00",
+    "hidden_dim": 24,
+    "graph_layers": 3,
+    "dropout": 0.0,
+    "best_epoch": 120,
+    "val_hidden_mae": 93.47711944580078,
+    "test_hidden_mae": 3.7228658199310303
+  },
+  {
+    "name": "08_h32_layers1_drop01",
+    "hidden_dim": 32,
+    "graph_layers": 1,
+    "dropout": 0.1,
+    "best_epoch": 108,
+    "val_hidden_mae": 94.06172370910645,
+    "test_hidden_mae": 36.45451617240906
+  },
+  {
+    "name": "01_h24_layers1_drop00",
+    "hidden_dim": 24,
+    "graph_layers": 1,
+    "dropout": 0.0,
+    "best_epoch": 120,
+    "val_hidden_mae": 94.7632942199707,
+    "test_hidden_mae": 23.27898371219635
+  },
+  {
+    "name": "03_h24_layers2_drop00",
+    "hidden_dim": 24,
+    "graph_layers": 2,
+    "dropout": 0.0,
+    "best_epoch": 118,
+    "val_hidden_mae": 96.50591278076172,
+    "test_hidden_mae": 26.66352355480194
+  },
+  {
+    "name": "02_h24_layers1_drop01",
+    "hidden_dim": 24,
+    "graph_layers": 1,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 97.62824964523315,
+    "test_hidden_mae": 42.86487150192261
+  },
+  {
+    "name": "06_h24_layers3_drop01",
+    "hidden_dim": 24,
+    "graph_layers": 3,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 98.34946489334106,
+    "test_hidden_mae": 45.61235952377319
+  },
+  {
+    "name": "04_h24_layers2_drop01",
+    "hidden_dim": 24,
+    "graph_layers": 2,
+    "dropout": 0.1,
+    "best_epoch": 120,
+    "val_hidden_mae": 98.75147032737732,
+    "test_hidden_mae": 44.93794393539429
+  }
+]

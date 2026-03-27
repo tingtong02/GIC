@@ -32,3 +32,15 @@ def test_train_and_evaluate_phase5_main_model_on_graph_ready_dataset(tmp_path: P
     assert eval_result['hotspot_metrics']['row_count'] > 0
     assert len(eval_result['rows']) > 0
     assert len(eval_result['case_studies']) > 0
+
+
+def test_phase5_feature_switches_change_active_feature_names(tmp_path: Path) -> None:
+    config = load_config(PHASE5_CONFIG)
+    config['training']['epochs'] = 2
+    config['training']['batch_size'] = 1
+    config['model']['use_signal_features'] = False
+    config['model']['use_physics_features'] = False
+
+    train_result = train_main_model(config=config, dataset_path=DATASET_PATH, output_dir=tmp_path / 'feature_switches')
+    assert all(not name.startswith('signal.') for name in train_result.feature_names)
+    assert all(not name.startswith('physics.') for name in train_result.feature_names)

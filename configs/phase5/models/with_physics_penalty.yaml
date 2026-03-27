@@ -1,0 +1,10 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_with_physics_penalty"
+  },
+  "loss": {
+    "use_physics_penalty": true,
+    "physics_penalty_weight": 0.1
+  }
+}
