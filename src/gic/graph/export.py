@@ -25,7 +25,7 @@ def export_graph_samples(
     split_assignments: dict[str, list[str]],
 ) -> tuple[GraphManifest, list[str]]:
     root = _export_root(project_root, graph_config)
-    samples_root = ensure_directory(root / 'samples')
+    samples_root = ensure_directory(root / 'samples' / dataset_name)
     manifests_root = ensure_directory(root / 'manifests')
     graph_paths: list[str] = []
     for sample in graph_samples:

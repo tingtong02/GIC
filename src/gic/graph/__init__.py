@@ -1,5 +1,16 @@
 from gic.graph.builder import build_graph_samples_from_config
-from gic.graph.datasets import GraphDataset, build_split_assignments, load_graph_manifest
+from gic.graph.datasets import (
+    GraphDataset,
+    GraphRegressionExample,
+    NodeRegressionExample,
+    build_graph_regression_examples,
+    build_node_regression_examples,
+    build_split_assignments,
+    load_graph_manifest,
+    load_graph_regression_examples,
+    load_graph_sample,
+    load_node_regression_examples,
+)
 from gic.graph.export import export_graph_dataset, export_graph_samples
 from gic.graph.schema import (
     EdgeRecord,
@@ -22,16 +33,23 @@ __all__ = [
     'GraphFeatureBundle',
     'GraphLabelBundle',
     'GraphManifest',
+    'GraphRegressionExample',
     'GraphSample',
     'MaskBundle',
     'NodeRecord',
+    'NodeRegressionExample',
     'ReconstructionTaskConfig',
+    'build_graph_regression_examples',
     'build_graph_samples_from_config',
+    'build_node_regression_examples',
     'build_split_assignments',
     'export_graph_dataset',
     'export_graph_samples',
     'graph_to_dict',
     'load_graph_manifest',
+    'load_graph_regression_examples',
+    'load_graph_sample',
+    'load_node_regression_examples',
     'validate_graph_manifest',
     'validate_graph_sample',
 ]

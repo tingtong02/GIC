@@ -45,6 +45,8 @@ from gic.graph import (
     validate_graph_manifest,
     validate_graph_sample,
 )
+from gic.eval import compare_metric_rows, write_json_report, write_markdown_report
+from gic.training import evaluate_baseline_model, train_baseline_model
 from gic.utils.logging_utils import configure_logger
 from gic.utils.paths import ensure_directory, resolve_project_root
 from gic.utils.runtime import initialize_run, write_summary
@@ -103,6 +105,12 @@ def _common_graph_parser(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="Optional project root override for graph-ready outputs and reports",
     )
+
+
+def _common_baseline_parser(parser: argparse.ArgumentParser) -> None:
+    _common_graph_parser(parser)
+    parser.add_argument("--model-type", default="mlp", help="Baseline model type")
+    parser.add_argument("--dataset-path", default=None, help="Optional graph-ready dataset override")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -199,6 +207,17 @@ def _build_parser() -> argparse.ArgumentParser:
     graph_build_report = subparsers.add_parser("graph-build-report", help="Build a Phase 4 graph-ready summary report")
     _common_graph_parser(graph_build_report)
     graph_build_report.set_defaults(func=cmd_graph_build_report)
+
+    train_baseline = subparsers.add_parser("train-baseline", help="Train a Phase 4 baseline model")
+    _common_baseline_parser(train_baseline)
+    train_baseline.add_argument("--epochs", type=int, default=None, help="Optional epoch override for the current run")
+    train_baseline.set_defaults(func=cmd_train_baseline)
+
+    eval_baseline = subparsers.add_parser("eval-baseline", help="Evaluate a Phase 4 baseline checkpoint")
+    _common_baseline_parser(eval_baseline)
+    eval_baseline.add_argument("--checkpoint", default=None, help="Path to a trained checkpoint")
+    eval_baseline.add_argument("--split", default="test", help="Dataset split to evaluate")
+    eval_baseline.set_defaults(func=cmd_eval_baseline)
 
     return parser
 
@@ -737,9 +756,11 @@ def cmd_graph_export_dataset(args: argparse.Namespace) -> int:
         project_root=project_root,
     )
     logger = configure_logger("gic.phase4.graph_export", config["logging"]["level"], context.log_file)
-    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
-    validation_summary = payload["validation_summary"]
-    if validation_summary["error_count"] > 0:
+    try:
+        export_payload = _phase4_export_dataset(config=config, project_root=project_root)
+    except ValueError as exc:
+        payload = _build_phase4_graph_assets(config=config, project_root=project_root)
+        validation_summary = payload["validation_summary"]
         validation_report_path = write_validation_report(validation_summary, context.report_dir / "graph_build_validation_report.json")
         write_summary(
             context,
@@ -747,6 +768,7 @@ def cmd_graph_export_dataset(args: argparse.Namespace) -> int:
                 "status": "failed",
                 "dataset_name": payload["graph_report"]["dataset_name"],
                 "validation_report_path": str(validation_report_path),
+                "error": str(exc),
             },
         )
         _serialize_result(
@@ -755,10 +777,295 @@ def cmd_graph_export_dataset(args: argparse.Namespace) -> int:
                 "dataset_name": payload["graph_report"]["dataset_name"],
                 "validation_summary": validation_summary,
                 "validation_report_path": str(validation_report_path),
+                "error": str(exc),
             }
         )
         return 1
 
+    payload = export_payload["payload"]
+    export_report = export_payload["export_report"]
+    combined_summary = export_payload["combined_summary"]
+    export_report_path = context.report_dir / "graph_export_report.json"
+    export_report_path.write_text(json.dumps(export_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_summary(
+        context,
+        {
+            "status": "ok" if combined_summary["error_count"] == 0 else "failed",
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "manifest_path": export_payload["manifest"].paths["manifest"],
+            "dataset_path": export_payload["dataset_path"],
+            "graph_count": len(export_payload["graph_paths"]),
+        },
+    )
+    logger.info("Exported graph-ready dataset %s with %d samples", payload["graph_report"]["dataset_name"], len(export_payload["graph_paths"]))
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "manifest_path": export_payload["manifest"].paths["manifest"],
+            "dataset_path": export_payload["dataset_path"],
+            "graph_count": len(export_payload["graph_paths"]),
+            "split_assignments": payload["split_assignments"],
+            "validation_summary": combined_summary,
+            "export_report_path": str(export_report_path),
+        }
+    )
+    return 0 if combined_summary["error_count"] == 0 else 1
+
+
+def cmd_graph_build_report(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase4_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="graph-build-report",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase4.graph_report", config["logging"]["level"], context.log_file)
+    export_payload = _phase4_export_dataset(config=config, project_root=project_root)
+    report_cfg = _phase4_report_config(config)
+    report_training_config = _phase4_training_override(config, report_cfg["training_epochs"])
+    active_models = _phase4_active_models(config)
+    default_runs: list[dict[str, Any]] = []
+    model_reports_root = ensure_directory(context.artifact_dir / "baseline_models")
+    for model_type in active_models:
+        run_payload = _phase4_train_and_evaluate(
+            config=report_training_config,
+            model_type=model_type,
+            dataset_path=export_payload["dataset_path"],
+            output_root=model_reports_root,
+            split=report_cfg["compare_split"],
+        )
+        evaluation = run_payload["evaluation"]
+        predictions_path = write_json_report(
+            evaluation["rows"],
+            context.report_dir / f"{model_type}_{report_cfg['compare_split']}_predictions.json",
+        )
+        metrics_path = write_json_report(
+            evaluation["metrics"],
+            context.report_dir / f"{model_type}_{report_cfg['compare_split']}_metrics.json",
+        )
+        reconstruction_path = write_json_report(
+            evaluation["reconstruction_maps"],
+            context.report_dir / f"{model_type}_{report_cfg['compare_split']}_reconstruction_maps.json",
+        )
+        default_runs.append(
+            {
+                "model_type": model_type,
+                "dataset_path": evaluation["dataset_path"],
+                "checkpoint_path": run_payload["checkpoint_path"],
+                "history_path": run_payload["history_path"],
+                "predictions_path": str(predictions_path),
+                "metrics_path": str(metrics_path),
+                "reconstruction_path": str(reconstruction_path),
+                "metrics": evaluation["metrics"],
+            }
+        )
+
+    comparison = _phase4_comparison_summary(default_runs)
+    graph_cfg = config["graph"]
+    default_dataset_name = str(graph_cfg["dataset_name"])
+    ablation_rows_sparsity: list[dict[str, Any]] = []
+    ablation_rows_features: list[dict[str, Any]] = []
+    for sparsity_rate in report_cfg["sparsity_rates"]:
+        variant_name = _phase4_variant_name(default_dataset_name, f"s{int(round(sparsity_rate * 100)):02d}")
+        variant_config = _phase4_variant_config(
+            config,
+            dataset_name=variant_name,
+            sparsity_rate=sparsity_rate,
+        )
+        variant_export = _phase4_export_dataset(config=variant_config, project_root=project_root)
+        variant_training = _phase4_training_override(variant_config, report_cfg["training_epochs"])
+        for model_type in report_cfg["ablation_models"]:
+            run_payload = _phase4_train_and_evaluate(
+                config=variant_training,
+                model_type=model_type,
+                dataset_path=variant_export["dataset_path"],
+                output_root=ensure_directory(context.artifact_dir / "ablations" / "sparsity" / variant_name),
+                split=report_cfg["compare_split"],
+            )
+            ablation_rows_sparsity.append(
+                _phase4_variant_summary(
+                    {
+                        "variant_name": variant_name,
+                        "model_type": model_type,
+                        "dataset_path": variant_export["dataset_path"],
+                        "sparsity_rate": sparsity_rate,
+                        "include_signal_features": bool(variant_config["graph"].get("include_signal_features", False)),
+                        "include_physics_baseline": bool(variant_config["graph"].get("include_physics_baseline", False)),
+                        "metrics": run_payload["evaluation"]["metrics"],
+                    },
+                    report_cfg["compare_split"],
+                )
+            )
+
+    if report_cfg["run_feature_ablations"]:
+        feature_variants = [
+            ("signal_off", {"include_signal_features": False}),
+            ("physics_off", {"include_physics_baseline": False}),
+        ]
+        for suffix, overrides in feature_variants:
+            variant_name = _phase4_variant_name(default_dataset_name, suffix)
+            variant_config = _phase4_variant_config(
+                config,
+                dataset_name=variant_name,
+                include_signal_features=overrides.get("include_signal_features"),
+                include_physics_baseline=overrides.get("include_physics_baseline"),
+            )
+            variant_export = _phase4_export_dataset(config=variant_config, project_root=project_root)
+            variant_training = _phase4_training_override(variant_config, report_cfg["training_epochs"])
+            for model_type in report_cfg["ablation_models"]:
+                run_payload = _phase4_train_and_evaluate(
+                    config=variant_training,
+                    model_type=model_type,
+                    dataset_path=variant_export["dataset_path"],
+                    output_root=ensure_directory(context.artifact_dir / "ablations" / "features" / variant_name),
+                    split=report_cfg["compare_split"],
+                )
+                ablation_rows_features.append(
+                    _phase4_variant_summary(
+                        {
+                            "variant_name": variant_name,
+                            "model_type": model_type,
+                            "dataset_path": variant_export["dataset_path"],
+                            "sparsity_rate": float(variant_config["graph"].get("sparsity_rate", 0.0)),
+                            "include_signal_features": bool(variant_config["graph"].get("include_signal_features", False)),
+                            "include_physics_baseline": bool(variant_config["graph"].get("include_physics_baseline", False)),
+                            "metrics": run_payload["evaluation"]["metrics"],
+                        },
+                        report_cfg["compare_split"],
+                    )
+                )
+
+    report_payload = {
+        "dataset_name": export_payload["payload"]["graph_report"]["dataset_name"],
+        "compare_split": report_cfg["compare_split"],
+        "active_models": active_models,
+        "default_dataset": {
+            "dataset_name": export_payload["payload"]["graph_report"]["dataset_name"],
+            "dataset_path": export_payload["dataset_path"],
+            "manifest_path": export_payload["manifest"].paths["manifest"],
+            "graph_report": export_payload["payload"]["graph_report"],
+            "validation_summary": export_payload["combined_summary"],
+        },
+        "comparison": comparison,
+        "ablations": {
+            "sparsity": ablation_rows_sparsity,
+            "features": ablation_rows_features,
+        },
+    }
+    report_path = write_json_report(report_payload, context.report_dir / "phase4_baseline_report.json")
+    markdown_path = write_markdown_report(_phase4_markdown_report(report_payload), context.report_dir / "phase4_baseline_report.md")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "dataset_name": export_payload["payload"]["graph_report"]["dataset_name"],
+            "graph_count": export_payload["payload"]["graph_report"]["graph_count"],
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "default_graph_baseline": comparison["default_graph_baseline"],
+        },
+    )
+    logger.info("Built Phase 4 baseline report for dataset %s", export_payload["payload"]["graph_report"]["dataset_name"])
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": export_payload["payload"]["graph_report"]["dataset_name"],
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "comparison": comparison,
+            "ablation_counts": {
+                "sparsity": len(ablation_rows_sparsity),
+                "features": len(ablation_rows_features),
+            },
+        }
+    )
+    return 0
+
+
+def _phase4_dataset_path(config: dict[str, Any], project_root: Path, override: str | None = None) -> Path:
+    if isinstance(override, str) and override:
+        return Path(override).resolve()
+    graph_cfg = config.get("graph")
+    if not isinstance(graph_cfg, dict):
+        raise ValueError("Phase 4 config requires a graph section")
+    output_root = graph_cfg.get("output_root")
+    dataset_name = graph_cfg.get("dataset_name")
+    if not isinstance(output_root, str) or not output_root:
+        raise ValueError("Phase 4 config requires graph.output_root")
+    if not isinstance(dataset_name, str) or not dataset_name:
+        raise ValueError("Phase 4 config requires graph.dataset_name")
+    return (project_root / output_root / "datasets" / f"{dataset_name}.json").resolve()
+
+
+def _phase4_model_type(model_type: str | None) -> str:
+    return str(model_type or "mlp").strip().lower()
+
+
+def _phase4_training_override(config: dict[str, Any], epochs: int | None) -> dict[str, Any]:
+    if epochs is None:
+        return config
+    updated = json.loads(json.dumps(config))
+    training_cfg = dict(updated.get("training", {}))
+    training_cfg["epochs"] = int(epochs)
+    updated["training"] = training_cfg
+    return updated
+
+
+def _phase4_clone_config(config: dict[str, Any]) -> dict[str, Any]:
+    return json.loads(json.dumps(config))
+
+
+def _phase4_active_models(config: dict[str, Any]) -> list[str]:
+    baseline_cfg = config.get("baseline", {})
+    if not isinstance(baseline_cfg, dict):
+        baseline_cfg = {}
+    active_models = baseline_cfg.get("active_models", ["mlp", "gcn", "graphsage", "gat"])
+    if not isinstance(active_models, list) or not active_models:
+        raise ValueError("Phase 4 config requires baseline.active_models")
+    return [_phase4_model_type(str(item)) for item in active_models]
+
+
+def _phase4_report_config(config: dict[str, Any]) -> dict[str, Any]:
+    reporting_cfg = config.get("reporting", {})
+    if not isinstance(reporting_cfg, dict):
+        reporting_cfg = {}
+    return {
+        "training_epochs": int(reporting_cfg.get("training_epochs", 4)),
+        "compare_split": str(reporting_cfg.get("compare_split", "test")),
+        "ablation_models": [_phase4_model_type(str(item)) for item in reporting_cfg.get("ablation_models", ["mlp", "gcn"])],
+        "sparsity_rates": [float(item) for item in reporting_cfg.get("sparsity_rates", [0.3, 0.7, 0.9])],
+        "run_feature_ablations": bool(reporting_cfg.get("run_feature_ablations", True)),
+    }
+
+
+def _phase4_variant_config(
+    config: dict[str, Any],
+    *,
+    dataset_name: str,
+    sparsity_rate: float | None = None,
+    include_signal_features: bool | None = None,
+    include_physics_baseline: bool | None = None,
+) -> dict[str, Any]:
+    updated = _phase4_clone_config(config)
+    graph_cfg = dict(updated.get("graph", {}))
+    graph_cfg["dataset_name"] = dataset_name
+    if sparsity_rate is not None:
+        graph_cfg["sparsity_rate"] = float(sparsity_rate)
+    if include_signal_features is not None:
+        graph_cfg["include_signal_features"] = bool(include_signal_features)
+    if include_physics_baseline is not None:
+        graph_cfg["include_physics_baseline"] = bool(include_physics_baseline)
+    updated["graph"] = graph_cfg
+    return updated
+
+
+def _phase4_export_dataset(config: dict[str, Any], project_root: Path) -> dict[str, Any]:
+    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
+    validation_summary = payload["validation_summary"]
+    if validation_summary["error_count"] > 0:
+        raise ValueError(f"Phase 4 graph validation failed for {payload['graph_report']['dataset_name']}: {validation_summary}")
     graph_cfg = config["graph"]
     manifest, graph_paths = export_graph_samples(
         project_root=project_root,
@@ -784,65 +1091,242 @@ def cmd_graph_export_dataset(args: argparse.Namespace) -> int:
             "validation_summary": combined_summary,
         }
     )
-    export_report_path = context.report_dir / "graph_export_report.json"
-    export_report_path.write_text(json.dumps(export_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    write_summary(
-        context,
-        {
-            "status": "ok" if combined_summary["error_count"] == 0 else "failed",
-            "dataset_name": payload["graph_report"]["dataset_name"],
-            "manifest_path": manifest.paths["manifest"],
-            "dataset_path": dataset_path,
-            "graph_count": len(graph_paths),
-        },
-    )
-    logger.info("Exported graph-ready dataset %s with %d samples", payload["graph_report"]["dataset_name"], len(graph_paths))
-    _serialize_result(
-        {
-            "run_id": context.run_id,
-            "dataset_name": payload["graph_report"]["dataset_name"],
-            "manifest_path": manifest.paths["manifest"],
-            "dataset_path": dataset_path,
-            "graph_count": len(graph_paths),
-            "split_assignments": payload["split_assignments"],
-            "validation_summary": combined_summary,
-            "export_report_path": str(export_report_path),
-        }
-    )
-    return 0 if combined_summary["error_count"] == 0 else 1
+    return {
+        "payload": payload,
+        "manifest": manifest,
+        "graph_paths": graph_paths,
+        "dataset_path": dataset_path,
+        "manifest_validation": manifest_validation,
+        "combined_summary": combined_summary,
+        "export_report": export_report,
+    }
 
 
-def cmd_graph_build_report(args: argparse.Namespace) -> int:
+def _phase4_train_and_evaluate(
+    *,
+    config: dict[str, Any],
+    model_type: str,
+    dataset_path: str | Path,
+    output_root: Path,
+    split: str,
+) -> dict[str, Any]:
+    model_output_root = ensure_directory(output_root / model_type)
+    train_result = train_baseline_model(
+        model_type=model_type,
+        config=config,
+        dataset_path=dataset_path,
+        output_dir=model_output_root,
+    )
+    eval_payload = evaluate_baseline_model(
+        model_type=model_type,
+        config=config,
+        dataset_path=dataset_path,
+        checkpoint_path=train_result.checkpoint_path,
+        split=split,
+    )
+    return {
+        "model_type": model_type,
+        "checkpoint_path": train_result.checkpoint_path,
+        "history_path": train_result.history_path,
+        "training_result": train_result,
+        "evaluation": eval_payload,
+        "metrics": eval_payload["metrics"],
+    }
+
+
+def _phase4_hidden_mae(row: dict[str, Any]) -> float:
+    return float(row.get("metrics", {}).get("hidden_only", {}).get("mae", row.get("metrics", {}).get("overall", {}).get("mae", float("inf"))))
+
+
+def _phase4_comparison_summary(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    ranked_rows = compare_metric_rows(rows)
+    default_graph_row = next((item for item in ranked_rows if str(item.get("model_type")) != "mlp"), None)
+    mlp_row = next((item for item in rows if str(item.get("model_type")) == "mlp"), None)
+    graph_gain = None
+    graph_beats_non_graph = None
+    if default_graph_row is not None and mlp_row is not None:
+        graph_gain = _phase4_hidden_mae(mlp_row) - _phase4_hidden_mae(default_graph_row)
+        graph_beats_non_graph = _phase4_hidden_mae(default_graph_row) < _phase4_hidden_mae(mlp_row)
+    return {
+        "ranking": [str(item.get("model_type", "")) for item in ranked_rows],
+        "rows": ranked_rows,
+        "best_overall_model": str(ranked_rows[0].get("model_type", "")) if ranked_rows else "",
+        "default_graph_baseline": str(default_graph_row.get("model_type", "")) if default_graph_row else "",
+        "graph_vs_non_graph_hidden_mae_gain": graph_gain,
+        "graph_beats_non_graph_on_hidden_mae": graph_beats_non_graph,
+    }
+
+
+def _phase4_variant_name(base_name: str, suffix: str) -> str:
+    return f"{base_name}_{suffix}"
+
+
+def _phase4_variant_summary(row: dict[str, Any], split: str) -> dict[str, Any]:
+    metrics = row["metrics"]
+    return {
+        "variant_name": str(row["variant_name"]),
+        "model_type": str(row["model_type"]),
+        "split": split,
+        "dataset_path": str(row["dataset_path"]),
+        "sparsity_rate": float(row["sparsity_rate"]),
+        "include_signal_features": bool(row["include_signal_features"]),
+        "include_physics_baseline": bool(row["include_physics_baseline"]),
+        "metrics": metrics,
+        "hidden_mae": float(metrics.get("hidden_only", {}).get("mae", metrics.get("overall", {}).get("mae", 0.0))),
+    }
+
+
+def _phase4_markdown_report(report: dict[str, Any]) -> str:
+    comparison = report["comparison"]
+    lines = [
+        "# Phase 4 Baseline Report",
+        "",
+        "## Default Dataset",
+        f"- Dataset: `{report['default_dataset']['dataset_name']}`",
+        f"- Split: `{report['compare_split']}`",
+        f"- Active models: {', '.join(report['active_models'])}",
+        f"- Best overall model: `{comparison['best_overall_model']}`",
+        f"- Default graph baseline: `{comparison['default_graph_baseline']}`",
+        f"- Graph beats non-graph on hidden MAE: `{comparison['graph_beats_non_graph_on_hidden_mae']}`",
+    ]
+    gain = comparison.get("graph_vs_non_graph_hidden_mae_gain")
+    if gain is not None:
+        lines.append(f"- Hidden MAE gain vs `mlp`: `{gain:.6f}`")
+    lines.extend(["", "## Baseline Ranking"])
+    for row in comparison["rows"]:
+        hidden_mae = _phase4_hidden_mae(row)
+        overall_mae = float(row.get("metrics", {}).get("overall", {}).get("mae", 0.0))
+        lines.append(
+            f"- `{row['model_type']}`: hidden_mae={hidden_mae:.6f}, overall_mae={overall_mae:.6f}, checkpoint=`{row['checkpoint_path']}`"
+        )
+    lines.extend(["", "## Sparsity Ablation"])
+    for row in report["ablations"]["sparsity"]:
+        lines.append(
+            f"- `{row['variant_name']}` / `{row['model_type']}`: sparsity={row['sparsity_rate']:.1f}, hidden_mae={row['hidden_mae']:.6f}"
+        )
+    lines.extend(["", "## Feature Ablation"])
+    for row in report["ablations"]["features"]:
+        lines.append(
+            f"- `{row['variant_name']}` / `{row['model_type']}`: signal={row['include_signal_features']}, physics={row['include_physics_baseline']}, hidden_mae={row['hidden_mae']:.6f}"
+        )
+    lines.extend(["", "## Acceptance Note"])
+    if comparison["graph_beats_non_graph_on_hidden_mae"]:
+        lines.append("- Current graph baseline outperforms the Phase 4 non-graph baseline on hidden-node MAE for the default dataset.")
+    else:
+        lines.append("- Current graph baseline does not yet show a clear hidden-node MAE gain over the non-graph baseline on the default dataset.")
+    lines.append("- Phase 4 implementation scope is complete when read as code/assets/tests/reporting coverage; empirical promotion to later phases should still follow the documented acceptance check.")
+    return "\n".join(lines) + "\n"
+
+
+def cmd_train_baseline(args: argparse.Namespace) -> int:
     config, project_root = _load_phase4_context(args)
+    config = _phase4_training_override(config, args.epochs)
+    model_type = _phase4_model_type(args.model_type)
+    dataset_path = _phase4_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"graph-ready data missing: {dataset_path}")
     context, _ = initialize_run(
         config=config,
         config_path=str(Path(args.config).resolve()),
-        command="graph-build-report",
+        command="train-baseline",
         project_root=project_root,
     )
-    logger = configure_logger("gic.phase4.graph_report", config["logging"]["level"], context.log_file)
-    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
-    report_path = context.report_dir / "graph_build_report.json"
-    report_path.write_text(json.dumps(payload["graph_report"], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    logger = configure_logger("gic.phase4.train", config["logging"]["level"], context.log_file)
+    result = train_baseline_model(model_type=model_type, config=config, dataset_path=dataset_path, output_dir=context.artifact_dir)
+    metrics_report_path = write_json_report(
+        {
+            "validation_metrics": result.validation_metrics,
+            "test_metrics": result.test_metrics,
+            "best_epoch": result.best_epoch,
+            "input_dim": result.input_dim,
+            "train_example_count": result.train_example_count,
+            "val_example_count": result.val_example_count,
+            "test_example_count": result.test_example_count,
+        },
+        context.report_dir / f"{model_type}_training_metrics.json",
+    )
     write_summary(
         context,
         {
-            "status": "ok" if payload["validation_summary"]["error_count"] == 0 else "failed",
-            "dataset_name": payload["graph_report"]["dataset_name"],
-            "graph_count": payload["graph_report"]["graph_count"],
-            "report_path": str(report_path),
+            "status": "ok",
+            "model_type": result.model_type,
+            "checkpoint_path": result.checkpoint_path,
+            "history_path": result.history_path,
+            "metrics_report_path": str(metrics_report_path),
         },
     )
-    logger.info("Built graph-ready summary report for dataset %s", payload["graph_report"]["dataset_name"])
+    logger.info("Trained %s baseline on %s", result.model_type, dataset_path)
     _serialize_result(
         {
             "run_id": context.run_id,
-            "dataset_name": payload["graph_report"]["dataset_name"],
-            "report_path": str(report_path),
-            "graph_report": payload["graph_report"],
+            "model_type": result.model_type,
+            "dataset_path": str(dataset_path),
+            "checkpoint_path": result.checkpoint_path,
+            "history_path": result.history_path,
+            "metrics_report_path": str(metrics_report_path),
+            "best_epoch": result.best_epoch,
+            "validation_metrics": result.validation_metrics,
+            "test_metrics": result.test_metrics,
         }
     )
-    return 0 if payload["validation_summary"]["error_count"] == 0 else 1
+    return 0
+
+
+def cmd_eval_baseline(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase4_context(args)
+    model_type = _phase4_model_type(args.model_type)
+    dataset_path = _phase4_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"graph-ready data missing: {dataset_path}")
+    if not args.checkpoint:
+        raise ValueError("eval-baseline requires --checkpoint")
+    checkpoint_path = Path(args.checkpoint).resolve()
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"checkpoint missing: {checkpoint_path}")
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="eval-baseline",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase4.eval", config["logging"]["level"], context.log_file)
+    payload = evaluate_baseline_model(
+        model_type=model_type,
+        config=config,
+        dataset_path=dataset_path,
+        checkpoint_path=checkpoint_path,
+        split=str(args.split or "test"),
+    )
+    predictions_path = write_json_report(payload["rows"], context.report_dir / f"{model_type}_{payload['split']}_predictions.json")
+    metrics_path = write_json_report(payload["metrics"], context.report_dir / f"{model_type}_{payload['split']}_metrics.json")
+    reconstruction_path = write_json_report(payload["reconstruction_maps"], context.report_dir / f"{model_type}_{payload['split']}_reconstruction_maps.json")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "model_type": model_type,
+            "split": payload["split"],
+            "checkpoint_path": str(checkpoint_path),
+            "predictions_path": str(predictions_path),
+            "metrics_path": str(metrics_path),
+            "reconstruction_path": str(reconstruction_path),
+        },
+    )
+    logger.info("Evaluated %s baseline on split %s", model_type, payload["split"])
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "model_type": model_type,
+            "split": payload["split"],
+            "dataset_path": payload["dataset_path"],
+            "checkpoint_path": str(checkpoint_path),
+            "predictions_path": str(predictions_path),
+            "metrics_path": str(metrics_path),
+            "reconstruction_path": str(reconstruction_path),
+            "metrics": payload["metrics"],
+        }
+    )
+    return 0
 
 
 def cmd_show_config(args: argparse.Namespace) -> int:

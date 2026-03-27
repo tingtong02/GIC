@@ -12,3 +12,4 @@ Current Phase 4 design choices:
 - Electrical connectivity edges are exported in both directions
 - Sparse observation is recorded explicitly in `MaskBundle`
 - Graph-ready exports are written to `data/processed/graph_ready/` and are reusable across later baselines
+- Each exported dataset now writes samples to `data/processed/graph_ready/samples/<dataset_name>/` so different sparsity and feature variants do not overwrite each other during ablation

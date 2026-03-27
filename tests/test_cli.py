@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from gic.cli.main import main
+from gic.config import load_config
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,6 +12,16 @@ PHASE0_CONFIG = ROOT / 'configs/phase0/phase0_dev.yaml'
 PHASE1_CONFIG = ROOT / 'configs/phase1/phase1_dev.yaml'
 PHASE3_CONFIG = ROOT / 'configs/phase3/phase3_dev.yaml'
 PHASE4_CONFIG = ROOT / 'configs/phase4/phase4_dev.yaml'
+
+
+def _write_phase4_test_config(tmp_path: Path, *, train_epochs: int = 3, report_epochs: int = 2) -> Path:
+    config = load_config(PHASE4_CONFIG)
+    config['training']['epochs'] = train_epochs
+    config['training']['batch_size'] = 4
+    config['reporting']['training_epochs'] = report_epochs
+    config_path = tmp_path / 'phase4_test_config.json'
+    config_path.write_text(json.dumps(config, indent=2, sort_keys=True) + '\n', encoding='utf-8')
+    return config_path
 
 
 def test_show_config_outputs_json(capsys) -> None:
@@ -177,12 +188,13 @@ def test_graph_export_dataset_writes_graph_ready_assets(capsys) -> None:
     assert payload['graph_count'] == 5
 
 
-def test_graph_build_report_writes_summary(capsys) -> None:
+def test_graph_build_report_writes_baseline_comparison(tmp_path: Path, capsys) -> None:
+    config_path = _write_phase4_test_config(tmp_path, train_epochs=2, report_epochs=2)
     exit_code = main(
         [
             'graph-build-report',
             '--config',
-            str(PHASE4_CONFIG),
+            str(config_path),
             '--project-root',
             str(ROOT),
         ]
@@ -191,4 +203,74 @@ def test_graph_build_report_writes_summary(capsys) -> None:
     payload = json.loads(captured.out)
     assert exit_code == 0
     assert Path(payload['report_path']).exists()
-    assert payload['graph_report']['graph_count'] == 5
+    assert Path(payload['markdown_path']).exists()
+    assert payload['comparison']['default_graph_baseline'] in {'gcn', 'graphsage', 'gat'}
+    assert payload['ablation_counts']['sparsity'] == 6
+    assert payload['ablation_counts']['features'] == 4
+
+
+def test_train_baseline_outputs_checkpoint_for_gcn(tmp_path: Path, capsys) -> None:
+    config_path = _write_phase4_test_config(tmp_path, train_epochs=3, report_epochs=2)
+    exit_code = main(
+        [
+            'train-baseline',
+            '--config',
+            str(config_path),
+            '--project-root',
+            str(ROOT),
+            '--model-type',
+            'gcn',
+            '--dataset-path',
+            str(ROOT / 'data/processed/graph_ready/datasets/timeseries_case118_graph_default.json'),
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert Path(payload['checkpoint_path']).exists()
+    assert Path(payload['history_path']).exists()
+
+
+def test_eval_baseline_outputs_metrics_predictions_and_reconstruction(tmp_path: Path, capsys) -> None:
+    config_path = _write_phase4_test_config(tmp_path, train_epochs=3, report_epochs=2)
+    train_exit = main(
+        [
+            'train-baseline',
+            '--config',
+            str(config_path),
+            '--project-root',
+            str(ROOT),
+            '--model-type',
+            'gcn',
+            '--dataset-path',
+            str(ROOT / 'data/processed/graph_ready/datasets/timeseries_case118_graph_default.json'),
+        ]
+    )
+    train_captured = capsys.readouterr()
+    train_payload = json.loads(train_captured.out)
+    assert train_exit == 0
+
+    eval_exit = main(
+        [
+            'eval-baseline',
+            '--config',
+            str(config_path),
+            '--project-root',
+            str(ROOT),
+            '--model-type',
+            'gcn',
+            '--dataset-path',
+            str(ROOT / 'data/processed/graph_ready/datasets/timeseries_case118_graph_default.json'),
+            '--checkpoint',
+            train_payload['checkpoint_path'],
+            '--split',
+            'test',
+        ]
+    )
+    eval_captured = capsys.readouterr()
+    eval_payload = json.loads(eval_captured.out)
+    assert eval_exit == 0
+    assert Path(eval_payload['predictions_path']).exists()
+    assert Path(eval_payload['metrics_path']).exists()
+    assert Path(eval_payload['reconstruction_path']).exists()
+    assert eval_payload['metrics']['overall']['mae'] >= 0.0

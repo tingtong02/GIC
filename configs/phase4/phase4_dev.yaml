@@ -19,5 +19,19 @@
   },
   "data": {
     "registry_root": "data/registry"
+  },
+  "training": {
+    "batch_size": 8,
+    "epochs": 25,
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "seed": 42
+  },
+  "reporting": {
+    "training_epochs": 4,
+    "compare_split": "test",
+    "ablation_models": ["mlp", "gcn"],
+    "sparsity_rates": [0.3, 0.7, 0.9],
+    "run_feature_ablations": true
   }
 }
