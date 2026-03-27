@@ -1,0 +1,33 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml"
+  ],
+  "project": {
+    "stage": "phase_1",
+    "profile": "phase1_dev"
+  },
+  "runtime": {
+    "command": "data-validate"
+  },
+  "data": {
+    "raw_root": "data/raw",
+    "interim_root": "data/interim",
+    "processed_root": "data/processed",
+    "registry_root": "data/registry",
+    "active_grid_sources": [
+      "matpower_case118"
+    ],
+    "active_timeseries_sources": [
+      "sample_geomagnetic_series"
+    ],
+    "validation": {
+      "run_on_startup": true,
+      "fail_on_missing_required_fields": true
+    },
+    "conversion": {
+      "write_manifest": true,
+      "overwrite_existing": true
+    }
+  }
+}
