@@ -1,0 +1,19 @@
+{
+  "model": {
+    "graph_backbone": "graphsage",
+    "graph_layers": 2,
+    "hidden_dim": 16,
+    "dropout": 0.0,
+    "temporal_encoder": "gru",
+    "physics_fusion": "residual",
+    "use_signal_features": true,
+    "use_physics_features": true,
+    "use_residual": false
+  },
+  "tasks": {
+    "regression": true,
+    "hotspot": true,
+    "risk_score": false,
+    "uncertainty": false
+  }
+}

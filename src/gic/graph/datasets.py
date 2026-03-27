@@ -50,6 +50,9 @@ class GraphDataset:
     def load_samples(self, split: str | None = None) -> list[GraphSample]:
         return [load_graph_sample(path) for path in self.paths_for_split(split)]
 
+    def load_all_samples(self) -> list[GraphSample]:
+        return [load_graph_sample(path) for path in self.graph_paths]
+
 
 @dataclass(slots=True)
 class NodeRegressionExample:
@@ -69,6 +72,20 @@ class GraphRegressionExample:
     targets: list[float]
     observed_mask: list[bool]
     adjacency: list[list[float]]
+    metadata: list[dict[str, Any]] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class TemporalGraphSequenceExample:
+    target_graph_id: str
+    sequence_graph_ids: list[str]
+    node_ids: list[str]
+    sequence_features: list[list[list[float]]]
+    adjacency: list[list[float]]
+    regression_targets: list[float]
+    hotspot_targets: list[float]
+    observed_mask: list[bool]
+    physics_baseline: list[float]
     metadata: list[dict[str, Any]] = field(default_factory=list)
 
 
@@ -205,6 +222,84 @@ def build_graph_regression_examples(samples: list[GraphSample], target_level: st
 
 
 
+def _iso_time_key(sample: GraphSample) -> str:
+    return sample.time_index[0] if sample.time_index else sample.graph_id
+
+
+
+def _quantile_threshold(values: list[float], quantile: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return float(ordered[0])
+    position = min(max(int(round((len(ordered) - 1) * quantile)), 0), len(ordered) - 1)
+    return float(ordered[position])
+
+
+
+def build_temporal_graph_examples(
+    dataset: GraphDataset,
+    *,
+    split: str,
+    target_level: str = 'bus',
+    window_size: int = 3,
+    hotspot_quantile: float = 0.75,
+    physics_feature_name: str = 'physics.adjacent_induced_abs_sum',
+) -> list[TemporalGraphSequenceExample]:
+    if target_level != 'bus':
+        raise NotImplementedError(f'Only bus-level temporal regression is implemented in the current Phase 5 pass: {target_level}')
+    if window_size < 1:
+        raise ValueError(f'window_size must be positive: {window_size}')
+    target_graph_ids = set(dataset.split_assignments.get(split, []))
+    if not target_graph_ids:
+        return []
+    samples = dataset.load_all_samples()
+    by_scenario: dict[str, list[GraphSample]] = {}
+    for sample in samples:
+        by_scenario.setdefault(sample.scenario_id, []).append(sample)
+    examples: list[TemporalGraphSequenceExample] = []
+    for scenario_samples in by_scenario.values():
+        ordered_samples = sorted(scenario_samples, key=_iso_time_key)
+        for end_index in range(window_size - 1, len(ordered_samples)):
+            target_sample = ordered_samples[end_index]
+            if target_sample.graph_id not in target_graph_ids:
+                continue
+            window = ordered_samples[end_index - window_size + 1:end_index + 1]
+            node_ids = [item.node_id for item in target_sample.node_records]
+            feature_names = target_sample.feature_bundle.node_feature_names
+            if physics_feature_name not in feature_names:
+                raise ValueError(f'Physics feature {physics_feature_name} is missing from graph-ready features')
+            physics_feature_index = feature_names.index(physics_feature_name)
+            abs_targets = [abs(float(target_sample.label_bundle.node_targets[node_id])) for node_id in node_ids]
+            hotspot_threshold = _quantile_threshold(abs_targets, hotspot_quantile)
+            metadata: list[dict[str, Any]] = []
+            for node_id in node_ids:
+                row = _node_metadata(target_sample, node_id)
+                row['hotspot_threshold'] = hotspot_threshold
+                row['physics_feature_name'] = physics_feature_name
+                metadata.append(row)
+            examples.append(
+                TemporalGraphSequenceExample(
+                    target_graph_id=target_sample.graph_id,
+                    sequence_graph_ids=[sample.graph_id for sample in window],
+                    node_ids=node_ids,
+                    sequence_features=[
+                        [list(sample.feature_bundle.node_features[node_id]) for node_id in node_ids]
+                        for sample in window
+                    ],
+                    adjacency=_build_adjacency_matrix(target_sample),
+                    regression_targets=[float(target_sample.label_bundle.node_targets[node_id]) for node_id in node_ids],
+                    hotspot_targets=[1.0 if abs(float(target_sample.label_bundle.node_targets[node_id])) >= hotspot_threshold else 0.0 for node_id in node_ids],
+                    observed_mask=[bool(target_sample.mask_bundle.observed_mask.get(node_id, False)) for node_id in node_ids],
+                    physics_baseline=[float(target_sample.feature_bundle.node_features[node_id][physics_feature_index]) for node_id in node_ids],
+                    metadata=metadata,
+                )
+            )
+    return examples
+
+
+
 def load_node_regression_examples(dataset_path: str | Path, split: str | None = None, target_level: str = 'bus') -> list[NodeRegressionExample]:
     dataset = GraphDataset.from_path(dataset_path)
     return build_node_regression_examples(dataset.load_samples(split=split), target_level=target_level)
@@ -214,6 +309,27 @@ def load_node_regression_examples(dataset_path: str | Path, split: str | None = 
 def load_graph_regression_examples(dataset_path: str | Path, split: str | None = None, target_level: str = 'bus') -> list[GraphRegressionExample]:
     dataset = GraphDataset.from_path(dataset_path)
     return build_graph_regression_examples(dataset.load_samples(split=split), target_level=target_level)
+
+
+
+def load_temporal_graph_examples(
+    dataset_path: str | Path,
+    *,
+    split: str,
+    target_level: str = 'bus',
+    window_size: int = 3,
+    hotspot_quantile: float = 0.75,
+    physics_feature_name: str = 'physics.adjacent_induced_abs_sum',
+) -> list[TemporalGraphSequenceExample]:
+    dataset = GraphDataset.from_path(dataset_path)
+    return build_temporal_graph_examples(
+        dataset,
+        split=split,
+        target_level=target_level,
+        window_size=window_size,
+        hotspot_quantile=hotspot_quantile,
+        physics_feature_name=physics_feature_name,
+    )
 
 
 

@@ -1,0 +1,9 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_no_temporal"
+  },
+  "model": {
+    "temporal_encoder": "none"
+  }
+}

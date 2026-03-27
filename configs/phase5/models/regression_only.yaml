@@ -1,0 +1,14 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_regression_only"
+  },
+  "tasks": {
+    "hotspot": false,
+    "risk_score": false,
+    "uncertainty": false
+  },
+  "loss": {
+    "hotspot_weight": 0.0
+  }
+}

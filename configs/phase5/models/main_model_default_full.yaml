@@ -1,0 +1,6 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_main_model_default"
+  }
+}

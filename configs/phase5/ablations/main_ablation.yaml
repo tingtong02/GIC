@@ -1,0 +1,24 @@
+{
+  "ablation": {
+    "training_epochs": 20,
+    "phase4_report_path": "reports/phase_4_20260327T140729Z_1355128f/phase4_baseline_report.json",
+    "variants": [
+      {
+        "name": "main_model_default",
+        "config_path": "models/main_model_default_full.yaml"
+      },
+      {
+        "name": "no_physics",
+        "config_path": "models/no_physics.yaml"
+      },
+      {
+        "name": "no_temporal",
+        "config_path": "models/no_temporal.yaml"
+      },
+      {
+        "name": "regression_only",
+        "config_path": "models/regression_only.yaml"
+      }
+    ]
+  }
+}

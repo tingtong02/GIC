@@ -1,0 +1,47 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "models/main_model_default.yaml",
+    "losses/default_loss.yaml",
+    "ablations/main_ablation.yaml"
+  ],
+  "project": {
+    "stage": "phase_5",
+    "profile": "phase5_dev"
+  },
+  "runtime": {
+    "mode": "development",
+    "command": "train-main-model"
+  },
+  "data": {
+    "registry_root": "data/registry"
+  },
+  "graph": {
+    "dataset_path": "data/processed/graph_ready/datasets/timeseries_case118_graph_default.json",
+    "phase4_report_path": "reports/phase_4_20260327T140729Z_1355128f/phase4_baseline_report.json"
+  },
+  "task": {
+    "target_level": "bus"
+  },
+  "temporal": {
+    "window_size": 3,
+    "hotspot_quantile": 0.75,
+    "physics_feature_name": "physics.adjacent_induced_abs_sum"
+  },
+  "training": {
+    "batch_size": 2,
+    "epochs": 40,
+    "lr": 0.001,
+    "weight_decay": 0.0,
+    "seed": 42
+  },
+  "evaluation": {
+    "compare_split": "test",
+    "export_predictions": true,
+    "export_case_studies": true,
+    "compare_with_phase4_best": true,
+    "case_study_top_k": 3,
+    "hotspot_threshold": 0.5
+  }
+}

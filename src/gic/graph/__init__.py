@@ -3,13 +3,16 @@ from gic.graph.datasets import (
     GraphDataset,
     GraphRegressionExample,
     NodeRegressionExample,
+    TemporalGraphSequenceExample,
     build_graph_regression_examples,
     build_node_regression_examples,
     build_split_assignments,
+    build_temporal_graph_examples,
     load_graph_manifest,
     load_graph_regression_examples,
     load_graph_sample,
     load_node_regression_examples,
+    load_temporal_graph_examples,
 )
 from gic.graph.export import export_graph_dataset, export_graph_samples
 from gic.graph.schema import (
@@ -39,10 +42,12 @@ __all__ = [
     'NodeRecord',
     'NodeRegressionExample',
     'ReconstructionTaskConfig',
+    'TemporalGraphSequenceExample',
     'build_graph_regression_examples',
     'build_graph_samples_from_config',
     'build_node_regression_examples',
     'build_split_assignments',
+    'build_temporal_graph_examples',
     'export_graph_dataset',
     'export_graph_samples',
     'graph_to_dict',
@@ -50,6 +55,7 @@ __all__ = [
     'load_graph_regression_examples',
     'load_graph_sample',
     'load_node_regression_examples',
+    'load_temporal_graph_examples',
     'validate_graph_manifest',
     'validate_graph_sample',
 ]

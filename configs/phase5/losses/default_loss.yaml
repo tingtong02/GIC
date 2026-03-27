@@ -1,0 +1,11 @@
+{
+  "loss": {
+    "regression_mode": "huber",
+    "huber_delta": 1.0,
+    "regression_weight": 1.0,
+    "hotspot_weight": 0.5,
+    "use_physics_penalty": false,
+    "physics_penalty_mode": "mae",
+    "physics_penalty_weight": 0.0
+  }
+}

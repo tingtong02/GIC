@@ -45,8 +45,20 @@ from gic.graph import (
     validate_graph_manifest,
     validate_graph_sample,
 )
-from gic.eval import compare_metric_rows, write_json_report, write_markdown_report
-from gic.training import evaluate_baseline_model, train_baseline_model
+from gic.eval import (
+    build_phase5_report_markdown,
+    compare_metric_rows,
+    compare_with_phase4_report,
+    write_json_report,
+    write_markdown_report,
+)
+from gic.training import (
+    evaluate_baseline_model,
+    evaluate_main_model,
+    run_phase5_ablation_suite,
+    train_baseline_model,
+    train_main_model,
+)
 from gic.utils.logging_utils import configure_logger
 from gic.utils.paths import ensure_directory, resolve_project_root
 from gic.utils.runtime import initialize_run, write_summary
@@ -56,6 +68,7 @@ DEFAULT_PHASE1_CONFIG = "configs/phase1/phase1_dev.yaml"
 DEFAULT_PHASE2_CONFIG = "configs/phase2/phase2_dev.yaml"
 DEFAULT_PHASE3_CONFIG = "configs/phase3/phase3_dev.yaml"
 DEFAULT_PHASE4_CONFIG = "configs/phase4/phase4_dev.yaml"
+DEFAULT_PHASE5_CONFIG = "configs/phase5/phase5_dev.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -111,6 +124,16 @@ def _common_baseline_parser(parser: argparse.ArgumentParser) -> None:
     _common_graph_parser(parser)
     parser.add_argument("--model-type", default="mlp", help="Baseline model type")
     parser.add_argument("--dataset-path", default=None, help="Optional graph-ready dataset override")
+
+
+def _common_main_model_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE5_CONFIG, help="Path to the Phase 5 config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for Phase 5 artifacts, reports, and dataset resolution",
+    )
+    parser.add_argument("--dataset-path", default=None, help="Optional Phase 5 graph-ready dataset override")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -219,6 +242,31 @@ def _build_parser() -> argparse.ArgumentParser:
     eval_baseline.add_argument("--split", default="test", help="Dataset split to evaluate")
     eval_baseline.set_defaults(func=cmd_eval_baseline)
 
+    train_main_model_parser = subparsers.add_parser("train-main-model", help="Train the Phase 5 main model")
+    _common_main_model_parser(train_main_model_parser)
+    train_main_model_parser.add_argument("--epochs", type=int, default=None, help="Optional epoch override for the current run")
+    train_main_model_parser.set_defaults(func=cmd_train_main_model)
+
+    eval_main_model_parser = subparsers.add_parser("eval-main-model", help="Evaluate a Phase 5 main-model checkpoint")
+    _common_main_model_parser(eval_main_model_parser)
+    eval_main_model_parser.add_argument("--checkpoint", default=None, help="Path to a trained Phase 5 checkpoint")
+    eval_main_model_parser.add_argument("--split", default=None, help="Dataset split to evaluate")
+    eval_main_model_parser.set_defaults(func=cmd_eval_main_model)
+
+    export_main_predictions = subparsers.add_parser("export-main-predictions", help="Export Phase 5 sample-level predictions")
+    _common_main_model_parser(export_main_predictions)
+    export_main_predictions.add_argument("--checkpoint", default=None, help="Path to a trained Phase 5 checkpoint")
+    export_main_predictions.add_argument("--split", default=None, help="Dataset split to export")
+    export_main_predictions.set_defaults(func=cmd_export_main_predictions)
+
+    run_ablation = subparsers.add_parser("run-ablation", help="Run Phase 5 ablations")
+    _common_main_model_parser(run_ablation)
+    run_ablation.set_defaults(func=cmd_run_ablation)
+
+    build_main_report = subparsers.add_parser("build-main-report", help="Build the Phase 5 main-model report")
+    _common_main_model_parser(build_main_report)
+    build_main_report.set_defaults(func=cmd_build_main_report)
+
     return parser
 
 
@@ -274,6 +322,18 @@ def _load_phase4_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
     registry_root = data_cfg.get("registry_root")
     if not isinstance(registry_root, str) or not registry_root:
         raise ValueError("Phase 4 config requires data.registry_root")
+    return config, project_root
+
+
+def _load_phase5_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 5 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 5 config requires data.registry_root")
     return config, project_root
 
 
@@ -1894,6 +1954,348 @@ def cmd_signal_build_report(args: argparse.Namespace) -> int:
         }
     )
     return 0 if summary["error_count"] == 0 else 1
+
+
+def _phase5_clone_config(config: dict[str, Any]) -> dict[str, Any]:
+    return json.loads(json.dumps(config))
+
+
+def _phase5_training_override(config: dict[str, Any], epochs: int | None) -> dict[str, Any]:
+    if epochs is None:
+        return config
+    updated = _phase5_clone_config(config)
+    training_cfg = dict(updated.get("training", {}))
+    training_cfg["epochs"] = int(epochs)
+    updated["training"] = training_cfg
+    return updated
+
+
+def _phase5_dataset_path(config: dict[str, Any], project_root: Path, override: str | None = None) -> Path:
+    if isinstance(override, str) and override:
+        return Path(override).resolve()
+    graph_cfg = config.get("graph")
+    if not isinstance(graph_cfg, dict):
+        raise ValueError("Phase 5 config requires a graph section")
+    dataset_path = graph_cfg.get("dataset_path")
+    if not isinstance(dataset_path, str) or not dataset_path:
+        raise ValueError("Phase 5 config requires graph.dataset_path")
+    path = Path(dataset_path)
+    return path.resolve() if path.is_absolute() else (project_root / path).resolve()
+
+
+def _phase5_report_path(config: dict[str, Any], project_root: Path) -> Path:
+    ablation_cfg = config.get("ablation", {})
+    if not isinstance(ablation_cfg, dict):
+        ablation_cfg = {}
+    graph_cfg = config.get("graph", {})
+    if not isinstance(graph_cfg, dict):
+        graph_cfg = {}
+    report_path = ablation_cfg.get("phase4_report_path") or graph_cfg.get("phase4_report_path")
+    if not isinstance(report_path, str) or not report_path:
+        raise ValueError("Phase 5 config requires ablation.phase4_report_path or graph.phase4_report_path")
+    path = Path(report_path)
+    return path.resolve() if path.is_absolute() else (project_root / path).resolve()
+
+
+def _phase5_compare_split(config: dict[str, Any], override: str | None = None) -> str:
+    if isinstance(override, str) and override:
+        return override
+    evaluation_cfg = config.get("evaluation", {})
+    if not isinstance(evaluation_cfg, dict):
+        evaluation_cfg = {}
+    return str(evaluation_cfg.get("compare_split", "test"))
+
+
+def _phase5_train_and_evaluate(
+    *,
+    config: dict[str, Any],
+    dataset_path: str | Path,
+    output_root: Path,
+    split: str,
+) -> dict[str, Any]:
+    train_result = train_main_model(config=config, dataset_path=dataset_path, output_dir=output_root)
+    evaluation = evaluate_main_model(
+        config=config,
+        dataset_path=dataset_path,
+        checkpoint_path=train_result.checkpoint_path,
+        split=split,
+    )
+    return {
+        "training_result": train_result,
+        "evaluation": evaluation,
+        "checkpoint_path": train_result.checkpoint_path,
+        "history_path": train_result.history_path,
+    }
+
+
+def cmd_train_main_model(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase5_context(args)
+    config = _phase5_training_override(config, args.epochs)
+    dataset_path = _phase5_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Phase 5 graph-ready data missing: {dataset_path}")
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="train-main-model",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase5.train", config["logging"]["level"], context.log_file)
+    result = train_main_model(config=config, dataset_path=dataset_path, output_dir=context.artifact_dir)
+    metrics_report_path = write_json_report(
+        {
+            "validation_metrics": result.validation_metrics,
+            "validation_hotspot_metrics": result.validation_hotspot_metrics,
+            "test_metrics": result.test_metrics,
+            "test_hotspot_metrics": result.test_hotspot_metrics,
+            "best_epoch": result.best_epoch,
+            "input_dim": result.input_dim,
+            "train_example_count": result.train_example_count,
+            "val_example_count": result.val_example_count,
+            "test_example_count": result.test_example_count,
+        },
+        context.report_dir / "phase5_main_training_metrics.json",
+    )
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "checkpoint_path": result.checkpoint_path,
+            "history_path": result.history_path,
+            "metrics_report_path": str(metrics_report_path),
+        },
+    )
+    logger.info("Trained Phase 5 main model on %s", dataset_path)
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_path": str(dataset_path),
+            "checkpoint_path": result.checkpoint_path,
+            "history_path": result.history_path,
+            "metrics_report_path": str(metrics_report_path),
+            "best_epoch": result.best_epoch,
+            "validation_metrics": result.validation_metrics,
+            "validation_hotspot_metrics": result.validation_hotspot_metrics,
+            "test_metrics": result.test_metrics,
+            "test_hotspot_metrics": result.test_hotspot_metrics,
+        }
+    )
+    return 0
+
+
+def cmd_eval_main_model(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase5_context(args)
+    dataset_path = _phase5_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Phase 5 graph-ready data missing: {dataset_path}")
+    if not args.checkpoint:
+        raise ValueError("eval-main-model requires --checkpoint")
+    checkpoint_path = Path(args.checkpoint).resolve()
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Phase 5 checkpoint missing: {checkpoint_path}")
+    split = _phase5_compare_split(config, args.split)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="eval-main-model",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase5.eval", config["logging"]["level"], context.log_file)
+    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split)
+    predictions_path = write_json_report(payload["rows"], context.report_dir / f"phase5_{split}_predictions.json")
+    metrics_path = write_json_report(payload["metrics"], context.report_dir / f"phase5_{split}_metrics.json")
+    hotspot_path = write_json_report(payload["hotspot_metrics"], context.report_dir / f"phase5_{split}_hotspot_metrics.json")
+    reconstruction_path = write_json_report(payload["reconstruction_maps"], context.report_dir / f"phase5_{split}_reconstruction_maps.json")
+    case_studies_path = write_json_report(payload["case_studies"], context.report_dir / f"phase5_{split}_case_studies.json")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "split": split,
+            "checkpoint_path": str(checkpoint_path),
+            "predictions_path": str(predictions_path),
+            "metrics_path": str(metrics_path),
+            "hotspot_path": str(hotspot_path),
+            "reconstruction_path": str(reconstruction_path),
+            "case_studies_path": str(case_studies_path),
+        },
+    )
+    logger.info("Evaluated Phase 5 main model on split %s", split)
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_path": payload["dataset_path"],
+            "checkpoint_path": str(checkpoint_path),
+            "split": split,
+            "predictions_path": str(predictions_path),
+            "metrics_path": str(metrics_path),
+            "hotspot_path": str(hotspot_path),
+            "reconstruction_path": str(reconstruction_path),
+            "case_studies_path": str(case_studies_path),
+            "metrics": payload["metrics"],
+            "hotspot_metrics": payload["hotspot_metrics"],
+        }
+    )
+    return 0
+
+
+def cmd_export_main_predictions(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase5_context(args)
+    dataset_path = _phase5_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Phase 5 graph-ready data missing: {dataset_path}")
+    if not args.checkpoint:
+        raise ValueError("export-main-predictions requires --checkpoint")
+    checkpoint_path = Path(args.checkpoint).resolve()
+    if not checkpoint_path.exists():
+        raise FileNotFoundError(f"Phase 5 checkpoint missing: {checkpoint_path}")
+    split = _phase5_compare_split(config, args.split)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="export-main-predictions",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase5.export", config["logging"]["level"], context.log_file)
+    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split)
+    predictions_path = write_json_report(payload["rows"], context.report_dir / f"phase5_{split}_predictions.json")
+    write_summary(context, {"status": "ok", "predictions_path": str(predictions_path), "split": split})
+    logger.info("Exported Phase 5 predictions for split %s", split)
+    _serialize_result({"run_id": context.run_id, "split": split, "predictions_path": str(predictions_path)})
+    return 0
+
+
+def cmd_run_ablation(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase5_context(args)
+    dataset_path = _phase5_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Phase 5 graph-ready data missing: {dataset_path}")
+    phase4_report_path = _phase5_report_path(config, project_root)
+    if not phase4_report_path.exists():
+        raise FileNotFoundError(f"Phase 4 comparison report missing: {phase4_report_path}")
+    config = _phase5_clone_config(config)
+    config.setdefault("ablation", {})["phase4_report_path"] = str(phase4_report_path)
+    compare_split = _phase5_compare_split(config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="run-ablation",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase5.ablation", config["logging"]["level"], context.log_file)
+    payload = run_phase5_ablation_suite(
+        base_config=config,
+        base_config_path=str(Path(args.config).resolve()),
+        dataset_path=dataset_path,
+        output_root=context.artifact_dir / "ablations",
+        compare_split=compare_split,
+        project_root=project_root,
+    )
+    report_path = write_json_report(payload, context.report_dir / "phase5_ablation_report.json")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "report_path": str(report_path),
+            "ablation_count": len(payload["ablations"]),
+            "compare_split": compare_split,
+        },
+    )
+    logger.info("Completed Phase 5 ablation suite")
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "report_path": str(report_path),
+            "ablation_count": len(payload["ablations"]),
+            "comparison_with_phase4": payload["comparison_with_phase4"],
+        }
+    )
+    return 0
+
+
+def cmd_build_main_report(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase5_context(args)
+    dataset_path = _phase5_dataset_path(config, project_root, args.dataset_path)
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"Phase 5 graph-ready data missing: {dataset_path}")
+    phase4_report_path = _phase5_report_path(config, project_root)
+    if not phase4_report_path.exists():
+        raise FileNotFoundError(f"Phase 4 comparison report missing: {phase4_report_path}")
+    config = _phase5_clone_config(config)
+    config.setdefault("ablation", {})["phase4_report_path"] = str(phase4_report_path)
+    compare_split = _phase5_compare_split(config)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="build-main-report",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase5.report", config["logging"]["level"], context.log_file)
+    default_run = _phase5_train_and_evaluate(
+        config=config,
+        dataset_path=dataset_path,
+        output_root=ensure_directory(context.artifact_dir / "main_model_default"),
+        split=compare_split,
+    )
+    default_eval = default_run["evaluation"]
+    predictions_path = write_json_report(default_eval["rows"], context.report_dir / f"phase5_{compare_split}_predictions.json")
+    metrics_path = write_json_report(default_eval["metrics"], context.report_dir / f"phase5_{compare_split}_metrics.json")
+    hotspot_path = write_json_report(default_eval["hotspot_metrics"], context.report_dir / f"phase5_{compare_split}_hotspot_metrics.json")
+    reconstruction_path = write_json_report(default_eval["reconstruction_maps"], context.report_dir / f"phase5_{compare_split}_reconstruction_maps.json")
+    case_studies_path = write_json_report(default_eval["case_studies"], context.report_dir / f"phase5_{compare_split}_case_studies.json")
+    ablation_payload = run_phase5_ablation_suite(
+        base_config=config,
+        base_config_path=str(Path(args.config).resolve()),
+        dataset_path=dataset_path,
+        output_root=context.artifact_dir / "ablations",
+        compare_split=compare_split,
+        project_root=project_root,
+    )
+    comparison_with_phase4 = compare_with_phase4_report(default_eval["metrics"], phase4_report_path)
+    report_payload = {
+        "dataset_name": Path(dataset_path).stem,
+        "dataset_path": str(dataset_path),
+        "compare_split": compare_split,
+        "default_config_path": str(Path(args.config).resolve()),
+        "phase4_report_path": str(phase4_report_path),
+        "default_run": {
+            "checkpoint_path": default_run["checkpoint_path"],
+            "history_path": default_run["history_path"],
+            "metrics": default_eval["metrics"],
+            "hotspot_metrics": default_eval["hotspot_metrics"],
+            "predictions_path": str(predictions_path),
+            "metrics_path": str(metrics_path),
+            "hotspot_path": str(hotspot_path),
+            "reconstruction_path": str(reconstruction_path),
+            "case_studies_path": str(case_studies_path),
+        },
+        "ablations": ablation_payload["ablations"],
+        "comparison_with_phase4": comparison_with_phase4,
+    }
+    report_path = write_json_report(report_payload, context.report_dir / "phase5_main_report.json")
+    markdown_path = write_markdown_report(build_phase5_report_markdown(report_payload), context.report_dir / "phase5_main_report.md")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "ablation_count": len(ablation_payload["ablations"]),
+            "phase5_beats_phase4_best": comparison_with_phase4["phase5_beats_phase4_best"],
+        },
+    )
+    logger.info("Built Phase 5 main-model report")
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "ablation_count": len(ablation_payload["ablations"]),
+            "comparison_with_phase4": comparison_with_phase4,
+        }
+    )
+    return 0
+
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)

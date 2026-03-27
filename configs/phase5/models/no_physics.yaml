@@ -1,0 +1,14 @@
+{
+  "defaults": ["../phase5_dev.yaml"],
+  "project": {
+    "profile": "phase5_no_physics"
+  },
+  "model": {
+    "use_physics_features": false,
+    "use_residual": false
+  },
+  "loss": {
+    "use_physics_penalty": false,
+    "physics_penalty_weight": 0.0
+  }
+}
