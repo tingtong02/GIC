@@ -1,0 +1,23 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "datasets/graph_dataset_default.yaml",
+    "models/mlp_baseline.yaml",
+    "models/gcn_baseline.yaml",
+    "models/graphsage_baseline.yaml",
+    "models/gat_baseline.yaml",
+    "eval/baseline_eval.yaml"
+  ],
+  "project": {
+    "stage": "phase_4",
+    "profile": "phase4_dev"
+  },
+  "runtime": {
+    "mode": "development",
+    "command": "graph-build-samples"
+  },
+  "data": {
+    "registry_root": "data/registry"
+  }
+}

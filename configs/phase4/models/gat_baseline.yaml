@@ -1,0 +1,10 @@
+{
+  "models": {
+    "gat": {
+      "hidden_dim": 32,
+      "layers": 2,
+      "heads": 2,
+      "dropout": 0.1
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "models": {
+    "gcn": {
+      "hidden_dim": 32,
+      "layers": 2,
+      "dropout": 0.1
+    }
+  }
+}

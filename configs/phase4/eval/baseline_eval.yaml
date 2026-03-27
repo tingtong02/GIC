@@ -1,0 +1,7 @@
+{
+  "evaluation": {
+    "export_predictions": true,
+    "export_reconstruction_maps": true,
+    "metrics": ["mae", "rmse", "correlation"]
+  }
+}

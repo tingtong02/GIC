@@ -10,6 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PHASE0_CONFIG = ROOT / 'configs/phase0/phase0_dev.yaml'
 PHASE1_CONFIG = ROOT / 'configs/phase1/phase1_dev.yaml'
 PHASE3_CONFIG = ROOT / 'configs/phase3/phase3_dev.yaml'
+PHASE4_CONFIG = ROOT / 'configs/phase4/phase4_dev.yaml'
 
 
 def test_show_config_outputs_json(capsys) -> None:
@@ -137,3 +138,57 @@ def test_signal_build_report_outputs_dual_benchmark_summary(capsys) -> None:
         assert payload['benchmark_summary']['promotion_status'] == 'ready'
     else:
         assert payload['benchmark_summary']['promotion_status'] == 'provisional'
+
+
+def test_graph_build_samples_outputs_counts(capsys) -> None:
+    exit_code = main(
+        [
+            'graph-build-samples',
+            '--config',
+            str(PHASE4_CONFIG),
+            '--project-root',
+            str(ROOT),
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert payload['graph_count'] == 5
+    assert payload['node_count'] == 3
+    assert payload['edge_count'] >= 6
+    assert Path(payload['graph_report_path']).exists()
+
+
+def test_graph_export_dataset_writes_graph_ready_assets(capsys) -> None:
+    exit_code = main(
+        [
+            'graph-export-dataset',
+            '--config',
+            str(PHASE4_CONFIG),
+            '--project-root',
+            str(ROOT),
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert Path(payload['manifest_path']).exists()
+    assert Path(payload['dataset_path']).exists()
+    assert payload['graph_count'] == 5
+
+
+def test_graph_build_report_writes_summary(capsys) -> None:
+    exit_code = main(
+        [
+            'graph-build-report',
+            '--config',
+            str(PHASE4_CONFIG),
+            '--project-root',
+            str(ROOT),
+        ]
+    )
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert exit_code == 0
+    assert Path(payload['report_path']).exists()
+    assert payload['graph_report']['graph_count'] == 5

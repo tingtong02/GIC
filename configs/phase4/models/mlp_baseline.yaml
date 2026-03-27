@@ -1,0 +1,11 @@
+{
+  "baseline": {
+    "active_models": ["mlp", "gcn", "graphsage", "gat"]
+  },
+  "models": {
+    "mlp": {
+      "hidden_dims": [32, 32],
+      "dropout": 0.1
+    }
+  }
+}

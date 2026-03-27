@@ -1,0 +1,24 @@
+{
+  "graph": {
+    "dataset_name": "timeseries_case118_graph_default",
+    "output_root": "data/processed/graph_ready",
+    "physics_case_path": "data/processed/physics_ready/physics_matpower_case118_sample.json",
+    "solution_path": "data/processed/physics_ready/timeseries_matpower_case118_sample_solutions.json",
+    "signal_manifest_path": "data/processed/signal_ready/manifests/signal_sample_geomagnetic_storm_day_fastica.manifest.json",
+    "node_type": "bus",
+    "include_edge_features": true,
+    "include_signal_features": true,
+    "include_physics_baseline": true,
+    "sparsity_rate": 0.7,
+    "mask_seed": 42,
+    "split": {
+      "train": 0.6,
+      "val": 0.2,
+      "test": 0.2
+    }
+  },
+  "task": {
+    "target_level": "bus",
+    "objective": "regression"
+  }
+}

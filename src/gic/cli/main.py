@@ -36,6 +36,15 @@ from gic.signal import (
     validate_frontend_result,
     validate_signal_sample,
 )
+from gic.graph import (
+    build_graph_samples_from_config,
+    build_split_assignments,
+    export_graph_dataset,
+    export_graph_samples,
+    load_graph_manifest,
+    validate_graph_manifest,
+    validate_graph_sample,
+)
 from gic.utils.logging_utils import configure_logger
 from gic.utils.paths import ensure_directory, resolve_project_root
 from gic.utils.runtime import initialize_run, write_summary
@@ -44,6 +53,7 @@ DEFAULT_CONFIG = "configs/phase0/phase0_dev.yaml"
 DEFAULT_PHASE1_CONFIG = "configs/phase1/phase1_dev.yaml"
 DEFAULT_PHASE2_CONFIG = "configs/phase2/phase2_dev.yaml"
 DEFAULT_PHASE3_CONFIG = "configs/phase3/phase3_dev.yaml"
+DEFAULT_PHASE4_CONFIG = "configs/phase4/phase4_dev.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -84,6 +94,15 @@ def _common_signal_parser(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument("--dataset-name", default=None, help="Optional Phase 3 dataset override")
     parser.add_argument("--method", default=None, help="Optional frontend method override")
+
+
+def _common_graph_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE4_CONFIG, help="Path to the Phase 4 config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for graph-ready outputs and reports",
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -169,6 +188,18 @@ def _build_parser() -> argparse.ArgumentParser:
     _common_signal_parser(signal_build_report)
     signal_build_report.set_defaults(func=cmd_signal_build_report)
 
+    graph_build_samples = subparsers.add_parser("graph-build-samples", help="Build and validate Phase 4 graph samples")
+    _common_graph_parser(graph_build_samples)
+    graph_build_samples.set_defaults(func=cmd_graph_build_samples)
+
+    graph_export_dataset = subparsers.add_parser("graph-export-dataset", help="Export Phase 4 graph-ready samples and dataset manifest")
+    _common_graph_parser(graph_export_dataset)
+    graph_export_dataset.set_defaults(func=cmd_graph_export_dataset)
+
+    graph_build_report = subparsers.add_parser("graph-build-report", help="Build a Phase 4 graph-ready summary report")
+    _common_graph_parser(graph_build_report)
+    graph_build_report.set_defaults(func=cmd_graph_build_report)
+
     return parser
 
 
@@ -213,6 +244,18 @@ def _load_phase3_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
         raise ValueError("Phase 3 config requires data.registry_root")
     registry = RegistryStore(project_root=project_root, registry_root=registry_root)
     return config, project_root, registry
+
+
+def _load_phase4_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 4 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 4 config requires data.registry_root")
+    return config, project_root
 
 
 def _convert_dataset(
@@ -594,6 +637,214 @@ def _aggregate_real_benchmark(
         "promotion_status": promotion_status,
         "promotion_reason": promotion_reason,
     }
+def _build_phase4_graph_assets(
+    *,
+    config: dict[str, Any],
+    project_root: Path,
+) -> dict[str, Any]:
+    graph_cfg = config.get("graph")
+    if not isinstance(graph_cfg, dict):
+        raise ValueError("Phase 4 config requires a graph section")
+
+    task, build_context, graph_samples = build_graph_samples_from_config(project_root, config)
+    split_assignments = build_split_assignments(
+        [item.graph_id for item in graph_samples],
+        graph_cfg.get("split", {}),
+    )
+    validations = [validate_graph_sample(item) for item in graph_samples]
+    validation_summary = summarize_validation_results(validations)
+    first_sample = graph_samples[0] if graph_samples else None
+    graph_report = {
+        "dataset_name": build_context["dataset_name"],
+        "source_case_id": build_context["source_case_id"],
+        "scenario_id": build_context["scenario_id"],
+        "graph_count": len(graph_samples),
+        "node_count": len(first_sample.node_records) if first_sample else 0,
+        "edge_count": len(first_sample.edge_records) if first_sample else 0,
+        "feature_count": len(first_sample.feature_bundle.node_feature_names) if first_sample else 0,
+        "feature_names": first_sample.feature_bundle.node_feature_names if first_sample else [],
+        "target_level": task.target_level,
+        "objective": task.objective,
+        "node_type": task.node_type,
+        "sparsity_rate": task.sparsity_rate,
+        "include_signal_features": task.include_signal_features,
+        "include_physics_baseline": task.include_physics_baseline,
+        "sample_ids": [item.sample_id for item in graph_samples],
+        "graph_ids": [item.graph_id for item in graph_samples],
+        "split_assignments": split_assignments,
+        "validation_summary": validation_summary,
+    }
+    return {
+        "task": task,
+        "build_context": build_context,
+        "graph_samples": graph_samples,
+        "split_assignments": split_assignments,
+        "validations": validations,
+        "validation_summary": validation_summary,
+        "graph_report": graph_report,
+    }
+
+
+def cmd_graph_build_samples(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase4_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="graph-build-samples",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase4.graph_build", config["logging"]["level"], context.log_file)
+    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
+    validation_summary = payload["validation_summary"]
+    graph_report = payload["graph_report"]
+    validation_report_path = write_validation_report(validation_summary, context.report_dir / "graph_build_validation_report.json")
+    graph_report_path = context.report_dir / "graph_build_report.json"
+    graph_report_path.write_text(json.dumps(graph_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_summary(
+        context,
+        {
+            "status": "ok" if validation_summary["error_count"] == 0 else "failed",
+            "dataset_name": graph_report["dataset_name"],
+            "graph_count": graph_report["graph_count"],
+            "validation_report_path": str(validation_report_path),
+            "graph_report_path": str(graph_report_path),
+        },
+    )
+    logger.info("Built %d graph samples for dataset %s", graph_report["graph_count"], graph_report["dataset_name"])
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": graph_report["dataset_name"],
+            "graph_count": graph_report["graph_count"],
+            "node_count": graph_report["node_count"],
+            "edge_count": graph_report["edge_count"],
+            "feature_count": graph_report["feature_count"],
+            "split_assignments": graph_report["split_assignments"],
+            "validation_summary": validation_summary,
+            "validation_report_path": str(validation_report_path),
+            "graph_report_path": str(graph_report_path),
+        }
+    )
+    return 0 if validation_summary["error_count"] == 0 else 1
+
+
+def cmd_graph_export_dataset(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase4_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="graph-export-dataset",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase4.graph_export", config["logging"]["level"], context.log_file)
+    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
+    validation_summary = payload["validation_summary"]
+    if validation_summary["error_count"] > 0:
+        validation_report_path = write_validation_report(validation_summary, context.report_dir / "graph_build_validation_report.json")
+        write_summary(
+            context,
+            {
+                "status": "failed",
+                "dataset_name": payload["graph_report"]["dataset_name"],
+                "validation_report_path": str(validation_report_path),
+            },
+        )
+        _serialize_result(
+            {
+                "run_id": context.run_id,
+                "dataset_name": payload["graph_report"]["dataset_name"],
+                "validation_summary": validation_summary,
+                "validation_report_path": str(validation_report_path),
+            }
+        )
+        return 1
+
+    graph_cfg = config["graph"]
+    manifest, graph_paths = export_graph_samples(
+        project_root=project_root,
+        graph_config=graph_cfg,
+        dataset_name=payload["build_context"]["dataset_name"],
+        source_case_id=payload["build_context"]["source_case_id"],
+        scenario_id=payload["build_context"]["scenario_id"],
+        task_payload=payload["build_context"]["task"],
+        graph_samples=payload["graph_samples"],
+        split_assignments=payload["split_assignments"],
+    )
+    dataset_path = export_graph_dataset(project_root=project_root, graph_config=graph_cfg, manifest=manifest)
+    reloaded_manifest = load_graph_manifest(manifest.paths["manifest"])
+    manifest_validation = validate_graph_manifest(reloaded_manifest)
+    combined_summary = summarize_validation_results([*payload["validations"], manifest_validation])
+    export_report = dict(payload["graph_report"])
+    export_report.update(
+        {
+            "manifest_path": manifest.paths["manifest"],
+            "dataset_path": dataset_path,
+            "graph_paths": graph_paths,
+            "manifest_validation": manifest_validation,
+            "validation_summary": combined_summary,
+        }
+    )
+    export_report_path = context.report_dir / "graph_export_report.json"
+    export_report_path.write_text(json.dumps(export_report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_summary(
+        context,
+        {
+            "status": "ok" if combined_summary["error_count"] == 0 else "failed",
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "manifest_path": manifest.paths["manifest"],
+            "dataset_path": dataset_path,
+            "graph_count": len(graph_paths),
+        },
+    )
+    logger.info("Exported graph-ready dataset %s with %d samples", payload["graph_report"]["dataset_name"], len(graph_paths))
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "manifest_path": manifest.paths["manifest"],
+            "dataset_path": dataset_path,
+            "graph_count": len(graph_paths),
+            "split_assignments": payload["split_assignments"],
+            "validation_summary": combined_summary,
+            "export_report_path": str(export_report_path),
+        }
+    )
+    return 0 if combined_summary["error_count"] == 0 else 1
+
+
+def cmd_graph_build_report(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase4_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="graph-build-report",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase4.graph_report", config["logging"]["level"], context.log_file)
+    payload = _build_phase4_graph_assets(config=config, project_root=project_root)
+    report_path = context.report_dir / "graph_build_report.json"
+    report_path.write_text(json.dumps(payload["graph_report"], indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    write_summary(
+        context,
+        {
+            "status": "ok" if payload["validation_summary"]["error_count"] == 0 else "failed",
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "graph_count": payload["graph_report"]["graph_count"],
+            "report_path": str(report_path),
+        },
+    )
+    logger.info("Built graph-ready summary report for dataset %s", payload["graph_report"]["dataset_name"])
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": payload["graph_report"]["dataset_name"],
+            "report_path": str(report_path),
+            "graph_report": payload["graph_report"],
+        }
+    )
+    return 0 if payload["validation_summary"]["error_count"] == 0 else 1
+
+
 def cmd_show_config(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     print(dump_config(config))
