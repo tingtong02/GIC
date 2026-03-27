@@ -120,6 +120,7 @@ def test_signal_build_report_outputs_dual_benchmark_summary(capsys) -> None:
     )
     captured = capsys.readouterr()
     payload = json.loads(captured.out)
+    real_benchmark = payload['benchmark_summary']['real_event_benchmark']
     assert exit_code == 0
     assert payload['benchmark_summary']['default_for_training'] in {
         'raw_baseline',
@@ -127,4 +128,12 @@ def test_signal_build_report_outputs_dual_benchmark_summary(capsys) -> None:
         'fastica',
         'sparse_denoise',
     }
-    assert payload['benchmark_summary']['promotion_status'] == 'provisional'
+    assert real_benchmark['observed_station_count'] == 3
+    assert real_benchmark['observed_event_window_count'] == 3
+    assert real_benchmark['observed_dataset_count'] == 9
+    assert real_benchmark['policy_agreement_count'] in {0, 2}
+    assert set(real_benchmark['policy_leaders']) == {'mean_score', 'window_wins'}
+    if real_benchmark['policy_leaders']['mean_score'] == real_benchmark['policy_leaders']['window_wins']:
+        assert payload['benchmark_summary']['promotion_status'] == 'ready'
+    else:
+        assert payload['benchmark_summary']['promotion_status'] == 'provisional'

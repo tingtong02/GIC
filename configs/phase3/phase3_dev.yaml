@@ -62,7 +62,13 @@
       "real_event_datasets": [
         "intermagnet_bou_2020_sep01_smoke",
         "intermagnet_frd_2020_sep01_smoke",
-        "intermagnet_ott_2020_sep01_smoke"
+        "intermagnet_ott_2020_sep01_smoke",
+        "intermagnet_bou_2020_oct01_smoke",
+        "intermagnet_frd_2020_oct01_smoke",
+        "intermagnet_ott_2020_oct01_smoke",
+        "intermagnet_bou_2020_nov01_smoke",
+        "intermagnet_frd_2020_nov01_smoke",
+        "intermagnet_ott_2020_nov01_smoke"
       ],
       "real_promotion_policy": {
         "min_stations": 3,

@@ -496,14 +496,23 @@ def _aggregate_real_benchmark(
     promotion_policy: dict[str, Any],
 ) -> dict[str, Any]:
     method_scores: dict[str, list[float]] = {}
+    window_scores: dict[str, dict[str, list[float]]] = {}
     time_ranges: set[str] = set()
+    station_ids: set[str] = set()
     for item in reports:
         time_range = item.get("time_range")
         if isinstance(time_range, str) and time_range:
             time_ranges.add(time_range)
+        station_id = item.get("station_id")
+        if isinstance(station_id, str) and station_id:
+            station_ids.add(station_id)
         report = item.get("report") or {}
         for row in report.get("summary_table", []):
-            method_scores.setdefault(str(row["method_name"]), []).append(float(row["score"]))
+            method_name = str(row["method_name"])
+            score = float(row["score"])
+            method_scores.setdefault(method_name, []).append(score)
+            if isinstance(time_range, str) and time_range:
+                window_scores.setdefault(time_range, {}).setdefault(method_name, []).append(score)
 
     def _priority_index(method_name: str) -> int:
         return comparison_priority.index(method_name) if method_name in comparison_priority else len(comparison_priority)
@@ -518,17 +527,58 @@ def _aggregate_real_benchmark(
     ]
     rows.sort(key=lambda item: (-float(item["mean_score"]), _priority_index(str(item["method_name"])), str(item["method_name"])))
     ranking = [str(item["method_name"]) for item in rows]
+
+    window_win_counts = {str(item["method_name"]): 0 for item in rows}
+    for method_scores_by_window in window_scores.values():
+        window_rows = [
+            {
+                "method_name": method_name,
+                "mean_score": sum(scores) / max(len(scores), 1),
+            }
+            for method_name, scores in method_scores_by_window.items()
+        ]
+        window_rows.sort(
+            key=lambda item: (-float(item["mean_score"]), _priority_index(str(item["method_name"])), str(item["method_name"]))
+        )
+        if window_rows:
+            winner = str(window_rows[0]["method_name"])
+            window_win_counts[winner] = window_win_counts.get(winner, 0) + 1
+
+    window_win_ranking = sorted(
+        window_win_counts.items(),
+        key=lambda item: (-int(item[1]), _priority_index(str(item[0])), str(item[0])),
+    )
+    mean_score_leader = ranking[0] if ranking else ""
+    window_wins_leader = window_win_ranking[0][0] if window_win_ranking else ""
+    policy_agreement_count = 2 if mean_score_leader and mean_score_leader == window_wins_leader else 0
+
     min_stations = int(promotion_policy.get("min_stations", 3))
     min_events = int(promotion_policy.get("min_event_windows", 3))
     required_consensus = int(promotion_policy.get("required_policy_consensus", 2))
-    station_count = len(reports)
+    station_count = len(station_ids)
     event_count = len(time_ranges)
-    ready = station_count >= min_stations and event_count >= min_events and required_consensus <= 1
+    dataset_count = len(reports)
+    ready = (
+        station_count >= min_stations
+        and event_count >= min_events
+        and policy_agreement_count >= required_consensus
+    )
     promotion_status = "ready" if ready else "provisional"
+    policy_leaders = {
+        "mean_score": mean_score_leader,
+        "window_wins": window_wins_leader,
+    }
     promotion_reason = (
-        "Real-event benchmark satisfies current promotion thresholds."
+        "Real-event benchmark satisfies current promotion thresholds. "
+        f"mean_score leader={mean_score_leader}, window_wins leader={window_wins_leader}."
         if ready
-        else f"Current real benchmark coverage is {station_count} station(s), {event_count} event window(s), and 1 policy; thresholds are {min_stations} stations, {min_events} events, and {required_consensus} policy agreements."
+        else (
+            "Current real benchmark coverage is "
+            f"{station_count} station(s), {event_count} event window(s), {dataset_count} dataset(s), "
+            f"and {policy_agreement_count} policy agreement(s); thresholds are {min_stations} stations, "
+            f"{min_events} events, and {required_consensus} policy agreements. "
+            f"mean_score leader={mean_score_leader}, window_wins leader={window_wins_leader}."
+        )
     )
     return {
         "benchmark_type": "real_event",
@@ -537,11 +587,13 @@ def _aggregate_real_benchmark(
         "summary_table": rows,
         "observed_station_count": station_count,
         "observed_event_window_count": event_count,
+        "observed_dataset_count": dataset_count,
+        "policy_leaders": policy_leaders,
+        "policy_agreement_count": policy_agreement_count,
+        "window_win_counts": window_win_counts,
         "promotion_status": promotion_status,
         "promotion_reason": promotion_reason,
     }
-
-
 def cmd_show_config(args: argparse.Namespace) -> int:
     config = load_config(args.config)
     print(dump_config(config))
@@ -1061,6 +1113,7 @@ def cmd_signal_build_report(args: argparse.Namespace) -> int:
         real_reports.append(
             {
                 "dataset_name": dataset_name,
+                "station_id": real_payload["sample"].sensor_id,
                 "time_range": dataset_record.time_range,
                 "report": signal_to_dict(real_payload["comparison_report"]) if real_payload["comparison_report"] else None,
             }
@@ -1106,8 +1159,6 @@ def cmd_signal_build_report(args: argparse.Namespace) -> int:
         }
     )
     return 0 if summary["error_count"] == 0 else 1
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)

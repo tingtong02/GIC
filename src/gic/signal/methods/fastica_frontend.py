@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import warnings
+
 import numpy as np
 from sklearn.decomposition import FastICA
+from sklearn.exceptions import ConvergenceWarning
 
 from gic.signal.base import BaseFrontend, FrontendComputation
 from gic.signal.preprocess import matrix_to_channel_values, moving_average, prepare_matrix
@@ -25,9 +28,10 @@ class FastICAFrontend(BaseFrontend):
             )
 
         backend = str(config.parameters.get('backend', 'sklearn_fastica'))
-        n_components = min(int(config.parameters.get('n_components', matrix.shape[1])), matrix.shape[1])
-        max_iter = int(config.parameters.get('max_iter', 200))
-        tol = float(config.parameters.get('tol', 1e-4))
+        requested_components = int(config.parameters.get('n_components', matrix.shape[1]))
+        n_components = max(1, min(requested_components, matrix.shape[1]))
+        max_iter = int(config.parameters.get('max_iter', 600))
+        tol = float(config.parameters.get('tol', 5e-4))
         random_seed = int(config.parameters.get('random_seed', 13))
         selection_window = int(config.parameters.get('selection_window', 5))
         quasi_window = int(config.parameters.get('quasi_window', 5))
@@ -51,23 +55,54 @@ class FastICAFrontend(BaseFrontend):
                 tol=tol,
                 random_state=random_seed,
             )
-            sources = estimator.fit_transform(matrix)
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                warnings.simplefilter('always', ConvergenceWarning)
+                sources = estimator.fit_transform(matrix)
+            fit_warnings = [str(item.message) for item in caught_warnings if issubclass(item.category, Warning)]
             mixing = estimator.mixing_
             mean_vector = estimator.mean_
-            scores: list[float] = []
+            scores: list[float | None] = []
+            valid_components: list[int] = []
             for index in range(sources.shape[1]):
                 component = sources[:, [index]]
+                if not np.isfinite(component).all():
+                    scores.append(None)
+                    continue
+                total = float(np.var(component))
+                if not np.isfinite(total) or total <= 1e-9:
+                    scores.append(None)
+                    continue
                 smooth = moving_average(component, selection_window)
-                total = float(np.var(component) + 1e-9)
                 lowfreq = float(np.var(smooth))
+                if not np.isfinite(lowfreq):
+                    scores.append(None)
+                    continue
                 scores.append(lowfreq / total)
-            selected = int(np.argmax(scores))
+                valid_components.append(index)
+
+            if not valid_components:
+                values = matrix_to_channel_values(matrix, signal_sample.channels)
+                return FrontendComputation(
+                    denoised_values=values,
+                    quasi_dc_values=values,
+                    status='failed',
+                    notes='FastICA produced no finite, non-degenerate components for selection.',
+                    metadata={
+                        'backend': backend,
+                        'n_components': n_components,
+                        'component_scores': scores,
+                        'reason': 'no_valid_components',
+                    },
+                )
+
+            selected = max(valid_components, key=lambda index: float(scores[index]))
             selected_source = sources[:, [selected]]
             selected_mixing = mixing[:, [selected]]
             reconstructed = selected_source @ selected_mixing.T + mean_vector
             quasi_dc = moving_average(reconstructed, quasi_window)
             iterations = int(getattr(estimator, 'n_iter_', max_iter))
-            converged = iterations < max_iter
+            convergence_warning = any('did not converge' in item.lower() for item in fit_warnings)
+            converged = iterations < max_iter and not convergence_warning
             status = 'ok' if converged else 'warning'
             return FrontendComputation(
                 denoised_values=matrix_to_channel_values(reconstructed, signal_sample.channels),
@@ -78,9 +113,10 @@ class FastICAFrontend(BaseFrontend):
                     'backend': backend,
                     'n_components': n_components,
                     'selected_component': selected,
-                    'component_scores': [float(item) for item in scores],
+                    'component_scores': scores,
                     'iterations': iterations,
                     'converged': converged,
+                    'fit_warnings': fit_warnings,
                 },
             )
         except Exception as exc:

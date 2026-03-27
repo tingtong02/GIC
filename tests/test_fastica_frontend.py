@@ -44,3 +44,32 @@ def test_fastica_frontend_runs_on_multichannel_fixture(project_root) -> None:
     assert result.method_name == 'fastica'
     assert result.metadata['backend'] == 'sklearn_fastica'
     assert len(result.quasi_dc_series.time_index) == len(sample.time_index)
+
+
+def test_fastica_real_event_returns_warning_metadata_without_fallback(project_root) -> None:
+    registry = RegistryStore(project_root=project_root, registry_root='data/registry')
+    dataset = registry.get_dataset('intermagnet_bou_2020_nov01_smoke')
+    source = registry.get_source(dataset.source_name)
+    series, _ = TimeSeriesLoader(project_root).load_geomagnetic(dataset, source)
+    sample = build_signal_sample_from_timeseries(series, {'synthetic_noise': {'enabled': True}})
+    result = FastICAFrontend().run(
+        sample,
+        FrontendConfig(
+            method_name='fastica',
+            method_version='1.1',
+            parameters={
+                'backend': 'sklearn_fastica',
+                'n_components': 3,
+                'max_iter': 1,
+                'tol': 1e-8,
+                'selection_window': 5,
+                'quasi_window': 5,
+            },
+        ),
+    )
+    assert result.status == 'warning'
+    assert result.metadata['backend'] == 'sklearn_fastica'
+    assert result.metadata['converged'] is False
+    assert 'selected_component' in result.metadata
+    assert 'component_scores' in result.metadata
+    assert len(result.quasi_dc_series.time_index) == len(sample.time_index)
