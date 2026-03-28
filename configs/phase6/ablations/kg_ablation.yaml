@@ -1,0 +1,18 @@
+{
+  "ablation": {
+    "variants": [
+      {
+        "name": "kg_default",
+        "config_path": "kg/kg_default.yaml"
+      },
+      {
+        "name": "feature_only",
+        "config_path": "kg/feature_only.yaml"
+      },
+      {
+        "name": "rules_only",
+        "config_path": "kg/rules_only.yaml"
+      }
+    ]
+  }
+}

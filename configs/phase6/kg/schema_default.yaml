@@ -1,0 +1,35 @@
+{
+  "kg": {
+    "schema_version": "v1",
+    "entities": [
+      "Grid",
+      "Region",
+      "Substation",
+      "Bus",
+      "Transformer",
+      "TransmissionLine",
+      "Sensor",
+      "MagnetometerStation",
+      "StormEvent",
+      "Scenario",
+      "Observation",
+      "AssumptionRecord"
+    ],
+    "relations": [
+      "connected_to",
+      "located_in",
+      "belongs_to",
+      "contains",
+      "observes",
+      "influenced_by",
+      "has_sensor",
+      "has_voltage_level",
+      "mapped_to",
+      "generated_from",
+      "associated_with_event",
+      "derived_under_scenario",
+      "constrained_by",
+      "has_quality_flag"
+    ]
+  }
+}

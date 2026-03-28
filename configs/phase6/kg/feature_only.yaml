@@ -1,0 +1,13 @@
+{
+  "defaults": [
+    "schema_default.yaml"
+  ],
+  "kg": {
+    "enabled": true,
+    "use_feature_enhancement": true,
+    "use_relation_enhancement": false,
+    "use_rule_layer": false,
+    "default_region_name": "default_region",
+    "default_substation_name": "default_substation"
+  }
+}

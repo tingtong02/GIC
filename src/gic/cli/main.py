@@ -52,6 +52,9 @@ from gic.eval import (
     write_json_report,
     write_markdown_report,
 )
+from gic.eval.kg_case_studies import select_kg_query_examples
+from gic.eval.kg_reports import build_kg_report_markdown, build_kg_report_payload
+from gic.kg import build_kg_bundle, build_schema_definition, export_kg_bundle, export_schema, kg_to_dict, query_sample
 from gic.training import (
     evaluate_baseline_model,
     evaluate_main_model,
@@ -69,6 +72,7 @@ DEFAULT_PHASE2_CONFIG = "configs/phase2/phase2_dev.yaml"
 DEFAULT_PHASE3_CONFIG = "configs/phase3/phase3_dev.yaml"
 DEFAULT_PHASE4_CONFIG = "configs/phase4/phase4_dev.yaml"
 DEFAULT_PHASE5_CONFIG = "configs/phase5/phase5_dev.yaml"
+DEFAULT_PHASE6_CONFIG = "configs/phase6/phase6_dev.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -134,6 +138,15 @@ def _common_main_model_parser(parser: argparse.ArgumentParser) -> None:
         help="Optional project root override for Phase 5 artifacts, reports, and dataset resolution",
     )
     parser.add_argument("--dataset-path", default=None, help="Optional Phase 5 graph-ready dataset override")
+
+def _common_kg_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE6_CONFIG, help="Path to the Phase 6 config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for Phase 6 KG artifacts, reports, and dataset resolution",
+    )
+    parser.add_argument("--dataset-path", default=None, help="Optional graph-ready dataset override for Phase 6 KG building")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -267,6 +280,31 @@ def _build_parser() -> argparse.ArgumentParser:
     _common_main_model_parser(build_main_report)
     build_main_report.set_defaults(func=cmd_build_main_report)
 
+    kg_build_schema = subparsers.add_parser("kg-build-schema", help="Build and export the Phase 6 KG schema")
+    _common_kg_parser(kg_build_schema)
+    kg_build_schema.set_defaults(func=cmd_kg_build_schema)
+
+    kg_build_graph = subparsers.add_parser("kg-build-graph", help="Build and export a Phase 6 KG bundle")
+    _common_kg_parser(kg_build_graph)
+    kg_build_graph.set_defaults(func=cmd_kg_build_graph)
+
+    kg_export_features = subparsers.add_parser("kg-export-features", help="Export Phase 6 KG-derived features")
+    _common_kg_parser(kg_export_features)
+    kg_export_features.set_defaults(func=cmd_kg_export_features)
+
+    kg_run_ablation = subparsers.add_parser("kg-run-ablation", help="Run Phase 6 KG configuration ablations")
+    _common_kg_parser(kg_run_ablation)
+    kg_run_ablation.set_defaults(func=cmd_kg_run_ablation)
+
+    kg_build_report = subparsers.add_parser("kg-build-report", help="Build a Phase 6 KG summary report")
+    _common_kg_parser(kg_build_report)
+    kg_build_report.set_defaults(func=cmd_kg_build_report)
+
+    kg_query_sample = subparsers.add_parser("kg-query-sample", help="Query a Phase 6 KG sample summary")
+    _common_kg_parser(kg_query_sample)
+    kg_query_sample.add_argument("--identifier", default=None, help="Graph id or sample id to query")
+    kg_query_sample.set_defaults(func=cmd_kg_query_sample)
+
     return parser
 
 
@@ -335,6 +373,34 @@ def _load_phase5_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
     if not isinstance(registry_root, str) or not registry_root:
         raise ValueError("Phase 5 config requires data.registry_root")
     return config, project_root
+
+def _load_phase6_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 6 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 6 config requires data.registry_root")
+    return config, project_root
+
+
+def _phase6_dataset_path(config: dict[str, Any], project_root: Path, dataset_override: str | None = None) -> Path:
+    if dataset_override:
+        return resolve_project_root(project_root) / Path(dataset_override) if not Path(dataset_override).is_absolute() else Path(dataset_override)
+    graph_cfg = config.get("graph")
+    if not isinstance(graph_cfg, dict):
+        raise ValueError("Phase 6 config requires a graph section")
+    dataset_path = graph_cfg.get("dataset_path")
+    if not isinstance(dataset_path, str) or not dataset_path:
+        raise ValueError("Phase 6 config requires graph.dataset_path")
+    return resolve_project_root(project_root) / dataset_path if not Path(dataset_path).is_absolute() else Path(dataset_path)
+
+
+def _phase6_variant_config_path(base_config_path: str | Path, relative_path: str) -> Path:
+    base_path = Path(base_config_path).resolve()
+    return (base_path.parent / relative_path).resolve()
 
 
 def _convert_dataset(
@@ -2318,6 +2384,233 @@ def cmd_build_main_report(args: argparse.Namespace) -> int:
         }
     )
     return 0
+
+
+def cmd_kg_build_schema(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    kg_cfg = dict(config.get("kg", {}))
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="kg-build-schema",
+        project_root=project_root,
+    )
+    schema = build_schema_definition()
+    dataset_name = _phase6_dataset_path(config, project_root, args.dataset_path).stem
+    schema_path = export_schema(project_root=project_root, kg_config=kg_cfg, dataset_name=dataset_name, schema=schema)
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "schema_path": schema_path,
+            "entity_type_count": len(schema.entity_types),
+            "relation_type_count": len(schema.relation_types),
+        },
+    )
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "schema_path": schema_path,
+            "entity_type_count": len(schema.entity_types),
+            "relation_type_count": len(schema.relation_types),
+        }
+    )
+    return 0
+
+
+def cmd_kg_build_graph(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
+    kg_cfg = dict(config.get("kg", {}))
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="kg-build-graph",
+        project_root=project_root,
+    )
+    build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=kg_cfg)
+    schema_path = export_schema(project_root=project_root, kg_config=kg_cfg, dataset_name=build_result.dataset_name, schema=build_result.schema)
+    export_paths = export_kg_bundle(
+        project_root=project_root,
+        kg_config=kg_cfg,
+        dataset_name=build_result.dataset_name,
+        entities=build_result.entities,
+        relations=build_result.relations,
+        manifest=build_result.manifest,
+        feature_payload=build_result.feature_payload if bool(kg_cfg.get("use_feature_enhancement", True)) else None,
+        rule_payload=build_result.rule_payload if bool(kg_cfg.get("use_rule_layer", True)) else None,
+    )
+    export_paths["schema"] = schema_path
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "dataset_name": build_result.dataset_name,
+            "entity_count": len(build_result.entities),
+            "relation_count": len(build_result.relations),
+            "manifest_path": export_paths["manifest"],
+        },
+    )
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "dataset_name": build_result.dataset_name,
+            "entity_count": len(build_result.entities),
+            "relation_count": len(build_result.relations),
+            "validation": build_result.validation,
+            "paths": export_paths,
+        }
+    )
+    return 0
+
+
+def cmd_kg_export_features(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
+    kg_cfg = dict(config.get("kg", {}))
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="kg-export-features",
+        project_root=project_root,
+    )
+    build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=kg_cfg)
+    export_paths = export_kg_bundle(
+        project_root=project_root,
+        kg_config=kg_cfg,
+        dataset_name=build_result.dataset_name,
+        entities=build_result.entities,
+        relations=build_result.relations,
+        manifest=build_result.manifest,
+        feature_payload=build_result.feature_payload,
+        rule_payload=build_result.rule_payload if bool(kg_cfg.get("use_rule_layer", True)) else None,
+    )
+    feature_payload = build_result.feature_payload
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "feature_path": export_paths.get("features", ""),
+            "graph_count": feature_payload.get("graph_count", 0),
+            "global_feature_count": len(feature_payload.get("global_feature_names", [])),
+            "node_feature_count": len(feature_payload.get("node_feature_names", [])),
+        },
+    )
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "feature_path": export_paths.get("features", ""),
+            "graph_count": feature_payload.get("graph_count", 0),
+            "global_feature_count": len(feature_payload.get("global_feature_names", [])),
+            "node_feature_count": len(feature_payload.get("node_feature_names", [])),
+        }
+    )
+    return 0
+
+
+def cmd_kg_run_ablation(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
+    variants = list(config.get("ablation", {}).get("variants", []))
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="kg-run-ablation",
+        project_root=project_root,
+    )
+    ablations: list[dict[str, Any]] = []
+    for variant in variants:
+        variant_name = str(variant.get("name", "unnamed"))
+        variant_config_path = _phase6_variant_config_path(args.config, str(variant.get("config_path", "")))
+        variant_payload = json.loads(Path(variant_config_path).read_text(encoding="utf-8"))
+        variant_kg_cfg = dict(config.get("kg", {}))
+        variant_kg_cfg.update(dict(variant_payload.get("kg", {})))
+        build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=variant_kg_cfg)
+        ablations.append(
+            {
+                "name": variant_name,
+                "config_path": str(variant_config_path),
+                "entity_count": len(build_result.entities),
+                "relation_count": len(build_result.relations),
+                "global_feature_count": len(build_result.feature_payload.get("global_feature_names", [])) if bool(variant_kg_cfg.get("use_feature_enhancement", True)) else 0,
+                "node_feature_count": len(build_result.feature_payload.get("node_feature_names", [])) if bool(variant_kg_cfg.get("use_feature_enhancement", True)) else 0,
+                "rule_graph_count": build_result.rule_payload.get("graph_count", 0) if bool(variant_kg_cfg.get("use_rule_layer", True)) else 0,
+            }
+        )
+    report_path = write_json_report({"dataset_path": str(dataset_path), "ablations": ablations}, context.report_dir / "phase6_kg_ablation_report.json")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "ablation_count": len(ablations)})
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "ablation_count": len(ablations)})
+    return 0
+
+
+def cmd_kg_build_report(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
+    kg_cfg = dict(config.get("kg", {}))
+    evaluation_cfg = dict(config.get("evaluation", {}))
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="kg-build-report",
+        project_root=project_root,
+    )
+    build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=kg_cfg)
+    schema_path = export_schema(project_root=project_root, kg_config=kg_cfg, dataset_name=build_result.dataset_name, schema=build_result.schema)
+    export_paths = export_kg_bundle(
+        project_root=project_root,
+        kg_config=kg_cfg,
+        dataset_name=build_result.dataset_name,
+        entities=build_result.entities,
+        relations=build_result.relations,
+        manifest=build_result.manifest,
+        feature_payload=build_result.feature_payload if bool(kg_cfg.get("use_feature_enhancement", True)) else None,
+        rule_payload=build_result.rule_payload if bool(kg_cfg.get("use_rule_layer", True)) else None,
+    )
+    query_ids = select_kg_query_examples(build_result.sample_index, top_k=int(evaluation_cfg.get("query_example_count", 3)))
+    queries = [
+        query_sample(
+            identifier=identifier,
+            sample_index=build_result.sample_index,
+            feature_payload=build_result.feature_payload,
+            rule_payload=build_result.rule_payload,
+        )
+        for identifier in query_ids
+    ]
+    report_payload = build_kg_report_payload(
+        dataset_name=build_result.dataset_name,
+        dataset_path=str(dataset_path),
+        manifest=kg_to_dict(build_result.manifest),
+        validation=build_result.validation,
+        feature_payload=build_result.feature_payload,
+        rule_payload=build_result.rule_payload,
+        query_examples=queries,
+        phase5_report_path=str(evaluation_cfg.get("phase5_report_path", "")) if evaluation_cfg.get("compare_with_phase5_default", False) else None,
+    )
+    report_payload["paths"] = {**export_paths, "schema": schema_path}
+    report_path = write_json_report(report_payload, context.report_dir / "phase6_kg_report.json")
+    markdown_path = write_markdown_report(build_kg_report_markdown(report_payload), context.report_dir / "phase6_kg_report.md")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "markdown_path": str(markdown_path)})
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "markdown_path": str(markdown_path), "query_example_count": len(queries)})
+    return 0
+
+
+def cmd_kg_query_sample(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase6_context(args)
+    dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
+    kg_cfg = dict(config.get("kg", {}))
+    identifier = args.identifier or str(kg_cfg.get("query_default_graph_id", ""))
+    if not identifier:
+        raise ValueError("Phase 6 kg query requires --identifier or kg.query_default_graph_id")
+    build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=kg_cfg)
+    payload = query_sample(
+        identifier=identifier,
+        sample_index=build_result.sample_index,
+        feature_payload=build_result.feature_payload,
+        rule_payload=build_result.rule_payload,
+    )
+    _serialize_result(payload)
+    return 0
+
 
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
