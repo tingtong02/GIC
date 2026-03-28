@@ -3,11 +3,7 @@
     "../../followup/signal_on_penalty_hotspot_0p2_default.yaml"
   ],
   "project": {
-    "profile": "phase5_formal_selected_no_physics"
-  },
-  "model": {
-    "use_physics_features": false,
-    "use_residual": false
+    "profile": "phase5_formal_selected_physics_penalty_off"
   },
   "loss": {
     "use_physics_penalty": false,

@@ -3,9 +3,10 @@
     "regression_mode": "huber",
     "huber_delta": 1.0,
     "regression_weight": 1.0,
-    "hotspot_weight": 0.5,
-    "use_physics_penalty": false,
+    "hotspot_weight": 0.2,
+    "use_physics_penalty": true,
     "physics_penalty_mode": "mae",
-    "physics_penalty_weight": 0.0
+    "physics_penalty_weight": 0.02,
+    "physics_penalty_warmup_epochs": 10
   }
 }

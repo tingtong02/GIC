@@ -8,20 +8,16 @@
         "config_path": "models/main_model_default_full.yaml"
       },
       {
+        "name": "signal_off",
+        "config_path": "models/signal_off.yaml"
+      },
+      {
         "name": "no_physics",
         "config_path": "models/no_physics.yaml"
       },
       {
-        "name": "residual_default",
-        "config_path": "models/residual_default.yaml"
-      },
-      {
-        "name": "with_physics_penalty",
-        "config_path": "models/with_physics_penalty.yaml"
-      },
-      {
-        "name": "signal_on",
-        "config_path": "models/signal_on.yaml"
+        "name": "physics_penalty_off",
+        "config_path": "models/physics_penalty_off.yaml"
       },
       {
         "name": "no_temporal",

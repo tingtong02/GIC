@@ -1,0 +1,14 @@
+{
+  "defaults": [
+    "../formal/default/signal_on_physics_penalty_light.yaml"
+  ],
+  "project": {
+    "profile": "phase5_followup_default_signal_on_penalty_hidden96_hotspot_0p2"
+  },
+  "model": {
+    "hidden_dim": 96
+  },
+  "loss": {
+    "hotspot_weight": 0.2
+  }
+}

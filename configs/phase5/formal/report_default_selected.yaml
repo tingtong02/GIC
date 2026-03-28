@@ -1,6 +1,6 @@
 {
   "defaults": [
-    "default/signal_on_physics_penalty_light.yaml"
+    "../followup/signal_on_penalty_hotspot_0p2_default.yaml"
   ],
   "project": {
     "profile": "phase5_formal_default_selected_report"
@@ -20,6 +20,10 @@
       {
         "name": "no_physics",
         "config_path": "selected/no_physics.yaml"
+      },
+      {
+        "name": "physics_penalty_off",
+        "config_path": "selected/physics_penalty_off.yaml"
       },
       {
         "name": "no_temporal",

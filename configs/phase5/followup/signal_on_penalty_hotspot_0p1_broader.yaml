@@ -1,0 +1,11 @@
+{
+  "defaults": [
+    "../formal/broader/signal_on_physics_penalty_light.yaml"
+  ],
+  "project": {
+    "profile": "phase5_followup_broader_signal_on_penalty_hotspot_0p1"
+  },
+  "loss": {
+    "hotspot_weight": 0.1
+  }
+}

@@ -66,5 +66,5 @@ def test_build_main_report_outputs_ablation_and_phase4_comparison(tmp_path: Path
     assert exit_code == 0
     assert Path(payload['report_path']).exists()
     assert Path(payload['markdown_path']).exists()
-    assert payload['ablation_count'] == 7
+    assert payload['ablation_count'] == 6
     assert 'phase5_beats_phase4_best' in payload['comparison_with_phase4']
