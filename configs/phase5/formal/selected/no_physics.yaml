@@ -1,0 +1,16 @@
+{
+  "defaults": [
+    "../default/signal_on_physics_penalty_light.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_selected_no_physics"
+  },
+  "model": {
+    "use_physics_features": false,
+    "use_residual": false
+  },
+  "loss": {
+    "use_physics_penalty": false,
+    "physics_penalty_weight": 0.0
+  }
+}

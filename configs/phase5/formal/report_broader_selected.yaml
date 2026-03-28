@@ -1,0 +1,37 @@
+{
+  "defaults": [
+    "broader/signal_on_physics_penalty_light.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_broader_selected_report"
+  },
+  "ablation": {
+    "training_epochs": 120,
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json",
+    "variants": [
+      {
+        "name": "main_model_default",
+        "config_path": "selected/main_model_default.yaml"
+      },
+      {
+        "name": "signal_off",
+        "config_path": "selected/signal_off.yaml"
+      },
+      {
+        "name": "no_physics",
+        "config_path": "selected/no_physics.yaml"
+      },
+      {
+        "name": "no_temporal",
+        "config_path": "selected/no_temporal.yaml"
+      },
+      {
+        "name": "regression_only",
+        "config_path": "selected/regression_only.yaml"
+      }
+    ]
+  },
+  "graph": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  }
+}

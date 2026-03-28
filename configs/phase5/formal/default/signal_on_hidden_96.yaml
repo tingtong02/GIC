@@ -1,0 +1,19 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_signal_on_hidden_96"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "model": {
+    "use_signal_features": true,
+    "hidden_dim": 96
+  },
+  "training": {
+    "lr": 0.0005
+  }
+}

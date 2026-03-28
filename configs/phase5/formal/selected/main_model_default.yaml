@@ -1,0 +1,8 @@
+{
+  "defaults": [
+    "../default/signal_on_physics_penalty_light.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_selected_main_model_default"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "defaults": [
+    "../../phase5_broader_benchmark.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_broader_signal_on_hidden_96"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "ablation": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  },
+  "graph": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  },
+  "model": {
+    "use_signal_features": true,
+    "hidden_dim": 96
+  },
+  "training": {
+    "lr": 0.0005
+  }
+}

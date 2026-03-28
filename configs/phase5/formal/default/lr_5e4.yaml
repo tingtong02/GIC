@@ -1,0 +1,15 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_lr_5e4"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "training": {
+    "lr": 0.0005
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_physics_penalty_light"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "loss": {
+    "use_physics_penalty": true,
+    "physics_penalty_weight": 0.02,
+    "physics_penalty_warmup_epochs": 10
+  }
+}

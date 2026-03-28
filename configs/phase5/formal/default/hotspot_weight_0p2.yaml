@@ -1,0 +1,15 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_hotspot_weight_0p2"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "loss": {
+    "hotspot_weight": 0.2
+  }
+}

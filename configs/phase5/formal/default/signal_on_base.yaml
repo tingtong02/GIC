@@ -1,0 +1,15 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_signal_on_base"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "model": {
+    "use_signal_features": true
+  }
+}

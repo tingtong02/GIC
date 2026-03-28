@@ -1,0 +1,12 @@
+{
+  "defaults": [
+    "../../phase5_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_default_base_current"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  }
+}

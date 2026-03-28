@@ -1,0 +1,21 @@
+{
+  "defaults": [
+    "../../phase5_broader_benchmark.yaml"
+  ],
+  "project": {
+    "profile": "phase5_formal_broader_lr_5e4"
+  },
+  "runtime": {
+    "mode": "formal",
+    "device": "cuda"
+  },
+  "ablation": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  },
+  "graph": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  },
+  "training": {
+    "lr": 0.0005
+  }
+}

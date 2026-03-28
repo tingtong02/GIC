@@ -1,0 +1,28 @@
+{
+  "broader_candidates": [
+    "base_current",
+    "lr_5e4",
+    "layers_2",
+    "hidden_96_lr_5e4",
+    "hotspot_weight_0p2",
+    "physics_penalty_light",
+    "signal_on_base",
+    "signal_on_lr_5e4"
+  ],
+  "fallback_candidates": [
+    "signal_on_hidden_96",
+    "signal_on_physics_penalty_light"
+  ],
+  "default_replay_pool": [
+    "base_current",
+    "lr_5e4",
+    "layers_2",
+    "hidden_96_lr_5e4",
+    "hotspot_weight_0p2",
+    "physics_penalty_light",
+    "signal_on_base",
+    "signal_on_lr_5e4",
+    "signal_on_hidden_96",
+    "signal_on_physics_penalty_light"
+  ]
+}

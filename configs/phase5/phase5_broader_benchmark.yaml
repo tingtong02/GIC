@@ -1,6 +1,6 @@
 {
   "ablation": {
-    "phase4_report_path": "reports/phase4_broader/phase4_baseline_report.json"
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
   },
   "data": {
     "registry_root": "data/registry"
@@ -22,7 +22,7 @@
   },
   "graph": {
     "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json",
-    "phase4_report_path": "reports/phase4_broader/phase4_baseline_report.json"
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
   },
   "project": {
     "profile": "phase5_broader_benchmark",

@@ -153,6 +153,22 @@ class TemporalSequenceDataset(Dataset[TemporalGraphSequenceExample]):
 def _set_seed(seed: int) -> None:
     random.seed(seed)
     torch.manual_seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(seed)
+
+
+def _resolve_runtime_device(config: dict[str, Any]) -> torch.device:
+    runtime_cfg = config.get('runtime', {})
+    if not isinstance(runtime_cfg, dict):
+        runtime_cfg = {}
+    requested = str(runtime_cfg.get('device', 'auto')).strip().lower()
+    if requested == 'cuda':
+        if not torch.cuda.is_available():
+            raise RuntimeError('runtime.device=cuda requested but CUDA is not available')
+        return torch.device('cuda')
+    if requested == 'cpu':
+        return torch.device('cpu')
+    return torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 def _stack_feature_rows(rows: Iterable[Iterable[float]], feature_count: int) -> torch.Tensor:
@@ -520,7 +536,7 @@ def train_main_model(
         global_physics_dim=input_dims['global_physics_dim'],
     )
     composer = LossComposer(config)
-    device = torch.device('cpu')
+    device = _resolve_runtime_device(config)
     model.to(device)
     composer.to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
@@ -585,6 +601,7 @@ def train_main_model(
                     'model_config': dict(config.get('model', {})),
                     'task_config': dict(config.get('tasks', {})),
                     'temporal_config': temporal_cfg,
+                    'runtime_device': str(device),
                 },
             )
 
@@ -670,7 +687,7 @@ def evaluate_main_model(
         global_physics_dim=input_dims['global_physics_dim'],
     )
     model.load_state_dict(checkpoint_payload['model_state'])
-    device = torch.device('cpu')
+    device = _resolve_runtime_device(config)
     model.to(device)
     loader = _build_loader(examples, batch_size=batch_size, shuffle=False, transforms=transforms)
     outputs = _run_inference(model, loader, device)
