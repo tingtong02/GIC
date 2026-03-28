@@ -4,12 +4,11 @@ import math
 from typing import Any
 
 
-
 def compute_regression_metrics(predictions: list[float], targets: list[float]) -> dict[str, float]:
     if len(predictions) != len(targets):
         raise ValueError('Predictions and targets must have the same length')
     if not predictions:
-        return {'mae': 0.0, 'rmse': 0.0, 'correlation': 0.0}
+        return {'mae': 0.0, 'rmse': 0.0, 'correlation': 0.0, 'nmae': 0.0}
     absolute_errors = [abs(prediction - target) for prediction, target in zip(predictions, targets)]
     squared_errors = [(prediction - target) ** 2 for prediction, target in zip(predictions, targets)]
     mean_prediction = sum(predictions) / len(predictions)
@@ -21,12 +20,15 @@ def compute_regression_metrics(predictions: list[float], targets: list[float]) -
     target_norm = math.sqrt(sum(item * item for item in centered_target))
     denominator = prediction_norm * target_norm
     correlation = numerator / denominator if denominator > 0 else 0.0
+    mae = sum(absolute_errors) / len(absolute_errors)
+    mean_abs_target = sum(abs(target) for target in targets) / len(targets)
+    nmae = mae / mean_abs_target if mean_abs_target > 1e-12 else 0.0
     return {
-        'mae': sum(absolute_errors) / len(absolute_errors),
+        'mae': mae,
         'rmse': math.sqrt(sum(squared_errors) / len(squared_errors)),
         'correlation': correlation,
+        'nmae': nmae,
     }
-
 
 
 def summarize_prediction_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
@@ -48,7 +50,6 @@ def summarize_prediction_rows(rows: list[dict[str, Any]]) -> dict[str, Any]:
             [float(item['target']) for item in observed_rows],
         ),
     }
-
 
 
 def compare_metric_rows(rows: list[dict[str, Any]], metric_path: tuple[str, str] = ('hidden_only', 'mae')) -> list[dict[str, Any]]:

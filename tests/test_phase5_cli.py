@@ -44,6 +44,8 @@ def test_train_main_model_outputs_checkpoint(tmp_path: Path, capsys) -> None:
     assert exit_code == 0
     assert Path(payload['checkpoint_path']).exists()
     assert Path(payload['history_path']).exists()
+    assert 'feature_summary' in payload
+    assert 'dataset_summary' in payload
 
 
 def test_build_main_report_outputs_ablation_and_phase4_comparison(tmp_path: Path, capsys) -> None:

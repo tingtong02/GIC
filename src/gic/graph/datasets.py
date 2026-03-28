@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import random
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -80,14 +81,23 @@ class TemporalGraphSequenceExample:
     target_graph_id: str
     sequence_graph_ids: list[str]
     node_ids: list[str]
-    feature_names: list[str] = field(default_factory=list)
-    sequence_features: list[list[list[float]]] = field(default_factory=list)
+    node_feature_names: list[str] = field(default_factory=list)
+    node_physics_feature_names: list[str] = field(default_factory=list)
+    global_signal_feature_names: list[str] = field(default_factory=list)
+    global_physics_feature_names: list[str] = field(default_factory=list)
+    sequence_node_features: list[list[list[float]]] = field(default_factory=list)
+    sequence_global_signal_features: list[list[float]] = field(default_factory=list)
+    node_physics_features: list[list[float]] = field(default_factory=list)
+    global_physics_features: list[float] = field(default_factory=list)
     adjacency: list[list[float]] = field(default_factory=list)
     regression_targets: list[float] = field(default_factory=list)
     hotspot_targets: list[float] = field(default_factory=list)
     observed_mask: list[bool] = field(default_factory=list)
     physics_baseline: list[float] = field(default_factory=list)
+    physics_quality_mask: list[float] = field(default_factory=list)
+    quality_flags: list[str] = field(default_factory=list)
     metadata: list[dict[str, Any]] = field(default_factory=list)
+
 
 
 def _node_record_from_dict(payload: dict[str, Any]) -> NodeRecord:
@@ -239,6 +249,38 @@ def _quantile_threshold(values: list[float], quantile: float) -> float:
 
 
 
+def _prefix_indices(names: list[str], prefix: str) -> list[int]:
+    return [index for index, name in enumerate(names) if name.startswith(prefix)]
+
+
+
+def _feature_values_for_indices(row: list[float], indices: list[int]) -> list[float]:
+    return [float(row[index]) for index in indices]
+
+
+
+def _sequence_values_for_indices(sequence_rows: list[list[float]], indices: list[int]) -> list[list[float]]:
+    return [_feature_values_for_indices(row, indices) for row in sequence_rows]
+
+
+
+def _physics_quality_mask(node_physics_features: list[list[float]], node_physics_feature_names: list[str]) -> list[float]:
+    if not node_physics_features:
+        return []
+    solver_index = node_physics_feature_names.index('physics.solver_ok') if 'physics.solver_ok' in node_physics_feature_names else None
+    quality_index = node_physics_feature_names.index('physics.quality_flag_count') if 'physics.quality_flag_count' in node_physics_feature_names else None
+    assumption_index = node_physics_feature_names.index('physics.assumption_count') if 'physics.assumption_count' in node_physics_feature_names else None
+    mask: list[float] = []
+    for row in node_physics_features:
+        solver_ok = float(row[solver_index]) if solver_index is not None else 1.0
+        quality_penalty = float(row[quality_index]) if quality_index is not None else 0.0
+        assumption_penalty = float(row[assumption_index]) if assumption_index is not None else 0.0
+        quality_value = max(0.0, solver_ok) / (1.0 + quality_penalty + 0.25 * assumption_penalty)
+        mask.append(float(quality_value))
+    return mask
+
+
+
 def build_temporal_graph_examples(
     dataset: GraphDataset,
     *,
@@ -262,16 +304,30 @@ def build_temporal_graph_examples(
     examples: list[TemporalGraphSequenceExample] = []
     for scenario_samples in by_scenario.values():
         ordered_samples = sorted(scenario_samples, key=_iso_time_key)
-        for end_index in range(window_size - 1, len(ordered_samples)):
+        for end_index in range(len(ordered_samples)):
             target_sample = ordered_samples[end_index]
             if target_sample.graph_id not in target_graph_ids:
                 continue
-            window = ordered_samples[end_index - window_size + 1:end_index + 1]
+            history_start = max(0, end_index - window_size + 1)
+            window = ordered_samples[history_start:end_index + 1]
+            if len(window) < window_size:
+                window = [window[0]] * (window_size - len(window)) + window
             node_ids = [item.node_id for item in target_sample.node_records]
-            feature_names = target_sample.feature_bundle.node_feature_names
-            if physics_feature_name not in feature_names:
-                raise ValueError(f'Physics feature {physics_feature_name} is missing from graph-ready features')
-            physics_feature_index = feature_names.index(physics_feature_name)
+            all_feature_names = list(target_sample.feature_bundle.node_feature_names)
+            local_feature_indices = [index for index, name in enumerate(all_feature_names) if not name.startswith('signal.') and not name.startswith('physics.')]
+            node_physics_feature_indices = _prefix_indices(all_feature_names, 'physics.')
+            node_feature_names = [all_feature_names[index] for index in local_feature_indices]
+            node_physics_feature_names = [all_feature_names[index] for index in node_physics_feature_indices]
+            if physics_feature_name in all_feature_names:
+                physics_feature_index = all_feature_names.index(physics_feature_name)
+                physics_baseline = [float(target_sample.feature_bundle.node_features[node_id][physics_feature_index]) for node_id in node_ids]
+            else:
+                physics_baseline = [0.0 for _ in node_ids]
+            global_feature_names = list(target_sample.feature_bundle.global_feature_names)
+            global_signal_indices = _prefix_indices(global_feature_names, 'signal.')
+            global_physics_indices = _prefix_indices(global_feature_names, 'physics.global.')
+            global_signal_feature_names = [global_feature_names[index] for index in global_signal_indices]
+            global_physics_feature_names = [global_feature_names[index] for index in global_physics_indices]
             abs_targets = [abs(float(target_sample.label_bundle.node_targets[node_id])) for node_id in node_ids]
             hotspot_threshold = _quantile_threshold(abs_targets, hotspot_quantile)
             metadata: list[dict[str, Any]] = []
@@ -279,22 +335,40 @@ def build_temporal_graph_examples(
                 row = _node_metadata(target_sample, node_id)
                 row['hotspot_threshold'] = hotspot_threshold
                 row['physics_feature_name'] = physics_feature_name
+                row['quality_flags'] = list(target_sample.metadata.get('quality_flags', []))
+                row['assumptions'] = list(target_sample.metadata.get('assumptions', []))
+                row['solver_status'] = target_sample.metadata.get('solver_status')
                 metadata.append(row)
+            node_physics_features = [
+                _feature_values_for_indices(target_sample.feature_bundle.node_features[node_id], node_physics_feature_indices)
+                for node_id in node_ids
+            ]
             examples.append(
                 TemporalGraphSequenceExample(
                     target_graph_id=target_sample.graph_id,
                     sequence_graph_ids=[sample.graph_id for sample in window],
                     node_ids=node_ids,
-                    feature_names=list(feature_names),
-                    sequence_features=[
-                        [list(sample.feature_bundle.node_features[node_id]) for node_id in node_ids]
+                    node_feature_names=node_feature_names,
+                    node_physics_feature_names=node_physics_feature_names,
+                    global_signal_feature_names=global_signal_feature_names,
+                    global_physics_feature_names=global_physics_feature_names,
+                    sequence_node_features=[
+                        [_feature_values_for_indices(sample.feature_bundle.node_features[node_id], local_feature_indices) for node_id in node_ids]
                         for sample in window
                     ],
+                    sequence_global_signal_features=[
+                        _feature_values_for_indices(sample.feature_bundle.global_features, global_signal_indices)
+                        for sample in window
+                    ],
+                    node_physics_features=node_physics_features,
+                    global_physics_features=_feature_values_for_indices(target_sample.feature_bundle.global_features, global_physics_indices),
                     adjacency=_build_adjacency_matrix(target_sample),
                     regression_targets=[float(target_sample.label_bundle.node_targets[node_id]) for node_id in node_ids],
                     hotspot_targets=[1.0 if abs(float(target_sample.label_bundle.node_targets[node_id])) >= hotspot_threshold else 0.0 for node_id in node_ids],
                     observed_mask=[bool(target_sample.mask_bundle.observed_mask.get(node_id, False)) for node_id in node_ids],
-                    physics_baseline=[float(target_sample.feature_bundle.node_features[node_id][physics_feature_index]) for node_id in node_ids],
+                    physics_baseline=physics_baseline,
+                    physics_quality_mask=_physics_quality_mask(node_physics_features, node_physics_feature_names),
+                    quality_flags=list(target_sample.feature_bundle.quality_flags),
                     metadata=metadata,
                 )
             )
@@ -335,7 +409,7 @@ def load_temporal_graph_examples(
 
 
 
-def build_split_assignments(graph_ids: list[str], split_config: dict[str, float]) -> dict[str, list[str]]:
+def _basic_split_assignments(graph_ids: list[str], split_config: dict[str, float]) -> dict[str, list[str]]:
     ordered = list(graph_ids)
     total = len(ordered)
     if total == 0:
@@ -357,6 +431,33 @@ def build_split_assignments(graph_ids: list[str], split_config: dict[str, float]
         'train': ordered[:train_count],
         'val': ordered[train_count:train_count + val_count],
         'test': ordered[train_count + val_count:train_count + val_count + test_count],
+    }
+
+
+
+def build_split_assignments(
+    graph_ids: list[str],
+    split_config: dict[str, float],
+    group_assignments: dict[str, str] | None = None,
+) -> dict[str, list[str]]:
+    if not group_assignments:
+        return _basic_split_assignments(graph_ids, split_config)
+    ordered_group_ids: list[str] = []
+    group_to_graph_ids: dict[str, list[str]] = {}
+    for graph_id in graph_ids:
+        group_id = str(group_assignments.get(graph_id, graph_id))
+        if group_id not in group_to_graph_ids:
+            ordered_group_ids.append(group_id)
+            group_to_graph_ids[group_id] = []
+        group_to_graph_ids[group_id].append(graph_id)
+    shuffled_group_ids = list(ordered_group_ids)
+    if len(shuffled_group_ids) > 1:
+        rng = random.Random(int(split_config.get('seed', 42)))
+        rng.shuffle(shuffled_group_ids)
+    grouped = _basic_split_assignments(shuffled_group_ids, split_config)
+    return {
+        split_name: [graph_id for group_id in grouped[split_name] for graph_id in group_to_graph_ids.get(group_id, [])]
+        for split_name in ('train', 'val', 'test')
     }
 
 

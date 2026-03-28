@@ -26,11 +26,21 @@ class LossComposer(nn.Module):
         self.regression_weight = float(loss_cfg.get('regression_weight', 1.0))
         self.hotspot_weight = float(loss_cfg.get('hotspot_weight', 0.5))
         self.physics_penalty_weight = float(loss_cfg.get('physics_penalty_weight', 0.1))
+        self.physics_penalty_warmup_epochs = max(0, int(loss_cfg.get('physics_penalty_warmup_epochs', 0)))
+        self.current_epoch = 1
         self.use_hotspot = bool(tasks_cfg.get('hotspot', True))
         self.use_physics_penalty = bool(loss_cfg.get('use_physics_penalty', True))
         self.regression_loss = RegressionLoss(mode=str(loss_cfg.get('regression_mode', 'huber')), delta=float(loss_cfg.get('huber_delta', 1.0)))
         self.hotspot_loss = HotspotLoss()
         self.physics_penalty = PhysicsPenaltyLoss(mode=str(loss_cfg.get('physics_penalty_mode', 'mae')))
+
+    def set_epoch(self, epoch: int) -> None:
+        self.current_epoch = max(1, int(epoch))
+
+    def _physics_penalty_scale(self) -> float:
+        if self.physics_penalty_warmup_epochs <= 0:
+            return 1.0
+        return 0.0 if self.current_epoch <= self.physics_penalty_warmup_epochs else 1.0
 
     def forward(self, output: MainModelOutputBundle) -> LossComputation:
         regression_component = self.regression_loss(output.regression_prediction, output.regression_target)
@@ -43,8 +53,10 @@ class LossComposer(nn.Module):
             total = total + self.hotspot_weight * hotspot_component
             components['hotspot'] = hotspot_component
         if self.use_physics_penalty and self.physics_penalty_weight > 0:
-            physics_component = self.physics_penalty(output.regression_prediction, output.physics_baseline)
-            total = total + self.physics_penalty_weight * physics_component
-            components['physics_penalty'] = physics_component
+            penalty_scale = self._physics_penalty_scale()
+            if penalty_scale > 0:
+                physics_component = self.physics_penalty(output.regression_prediction, output.physics_baseline)
+                total = total + (self.physics_penalty_weight * penalty_scale) * physics_component
+                components['physics_penalty'] = physics_component
         components['total'] = total
         return LossComputation(total=total, components=components)

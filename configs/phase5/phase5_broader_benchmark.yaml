@@ -1,0 +1,50 @@
+{
+  "ablation": {
+    "phase4_report_path": "reports/phase4_broader/phase4_baseline_report.json"
+  },
+  "data": {
+    "registry_root": "data/registry"
+  },
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "models/main_model_default.yaml",
+    "losses/default_loss.yaml",
+    "ablations/main_ablation.yaml"
+  ],
+  "evaluation": {
+    "case_study_top_k": 3,
+    "compare_split": "test",
+    "compare_with_phase4_best": true,
+    "export_case_studies": true,
+    "export_predictions": true,
+    "hotspot_threshold": 0.5
+  },
+  "graph": {
+    "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json",
+    "phase4_report_path": "reports/phase4_broader/phase4_baseline_report.json"
+  },
+  "project": {
+    "profile": "phase5_broader_benchmark",
+    "stage": "phase_5"
+  },
+  "runtime": {
+    "command": "train-main-model",
+    "mode": "development"
+  },
+  "task": {
+    "target_level": "bus"
+  },
+  "temporal": {
+    "hotspot_quantile": 0.75,
+    "physics_feature_name": "physics.adjacent_induced_abs_sum",
+    "window_size": 3
+  },
+  "training": {
+    "batch_size": 1,
+    "epochs": 120,
+    "lr": 0.001,
+    "seed": 42,
+    "weight_decay": 0.0
+  }
+}

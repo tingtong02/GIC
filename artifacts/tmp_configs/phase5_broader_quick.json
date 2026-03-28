@@ -1,0 +1,116 @@
+{
+  "_meta": {
+    "config_path": "/home/user/projects/GIC/configs/phase5/phase5_broader_benchmark.yaml"
+  },
+  "ablation": {
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json",
+    "training_epochs": 2,
+    "variants": [
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/main_model_default_full.yaml",
+        "name": "main_model_default"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/no_physics.yaml",
+        "name": "no_physics"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/residual_default.yaml",
+        "name": "residual_default"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/with_physics_penalty.yaml",
+        "name": "with_physics_penalty"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/signal_on.yaml",
+        "name": "signal_on"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/no_temporal.yaml",
+        "name": "no_temporal"
+      },
+      {
+        "config_path": "/home/user/projects/GIC/configs/phase5/models/regression_only.yaml",
+        "name": "regression_only"
+      }
+    ]
+  },
+  "data": {
+    "registry_root": "data/registry"
+  },
+  "evaluation": {
+    "case_study_top_k": 3,
+    "compare_split": "test",
+    "compare_with_phase4_best": true,
+    "export_case_studies": true,
+    "export_predictions": true,
+    "hotspot_threshold": 0.5
+  },
+  "graph": {
+    "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json",
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json"
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "loss": {
+    "hotspot_weight": 0.5,
+    "huber_delta": 1.0,
+    "physics_penalty_mode": "mae",
+    "physics_penalty_weight": 0.0,
+    "regression_mode": "huber",
+    "regression_weight": 1.0,
+    "use_physics_penalty": false
+  },
+  "model": {
+    "dropout": 0.0,
+    "graph_backbone": "graphsage",
+    "graph_layers": 3,
+    "hidden_dim": 64,
+    "physics_fusion": "residual",
+    "temporal_encoder": "gru",
+    "use_physics_features": true,
+    "use_residual": false,
+    "use_signal_features": false
+  },
+  "paths": {
+    "artifacts_root": "artifacts/runs",
+    "config_snapshot_name": "config_snapshot.yaml",
+    "log_filename": "run.log",
+    "logs_root": "logs",
+    "metadata_name": "metadata.json",
+    "reports_root": "reports",
+    "summary_name": "summary.json"
+  },
+  "project": {
+    "name": "gic",
+    "profile": "phase5_broader_benchmark",
+    "stage": "phase_5"
+  },
+  "runtime": {
+    "command": "train-main-model",
+    "mode": "development"
+  },
+  "task": {
+    "target_level": "bus"
+  },
+  "tasks": {
+    "hotspot": true,
+    "regression": true,
+    "risk_score": false,
+    "uncertainty": false
+  },
+  "temporal": {
+    "hotspot_quantile": 0.75,
+    "physics_feature_name": "physics.adjacent_induced_abs_sum",
+    "window_size": 3
+  },
+  "training": {
+    "batch_size": 1,
+    "epochs": 3,
+    "lr": 0.001,
+    "seed": 42,
+    "weight_decay": 0.0
+  }
+}

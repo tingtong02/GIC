@@ -1,0 +1,126 @@
+{
+  "_meta": {
+    "config_path": "/home/user/projects/GIC/configs/phase4/phase4_broader_benchmark.yaml"
+  },
+  "baseline": {
+    "active_models": [
+      "mlp",
+      "gcn",
+      "graphsage",
+      "gat"
+    ]
+  },
+  "data": {
+    "registry_root": "data/registry"
+  },
+  "evaluation": {
+    "export_predictions": true,
+    "export_reconstruction_maps": true,
+    "metrics": [
+      "mae",
+      "rmse",
+      "correlation"
+    ]
+  },
+  "graph": {
+    "dataset_name": "case118_graph_broader",
+    "include_edge_features": true,
+    "include_physics_baseline": true,
+    "include_signal_features": true,
+    "mask_seed": 42,
+    "node_type": "bus",
+    "output_root": "data/processed/graph_ready",
+    "physics_case_path": "data/processed/physics_ready/physics_matpower_case118_sample.json",
+    "signal_manifest_path": "data/processed/signal_ready/manifests/signal_sample_geomagnetic_storm_day_fastica.manifest.json",
+    "solution_paths": [
+      "data/processed/physics_ready/timeseries_matpower_case118_sample_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_90_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_90_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_90_solutions.json"
+    ],
+    "sparsity_rate": 0.7,
+    "split": {
+      "seed": 1,
+      "test": 0.2,
+      "train": 0.6,
+      "val": 0.2
+    }
+  },
+  "logging": {
+    "level": "INFO"
+  },
+  "models": {
+    "gat": {
+      "dropout": 0.1,
+      "heads": 2,
+      "hidden_dim": 32,
+      "layers": 2
+    },
+    "gcn": {
+      "dropout": 0.1,
+      "hidden_dim": 32,
+      "layers": 2
+    },
+    "graphsage": {
+      "dropout": 0.1,
+      "hidden_dim": 32,
+      "layers": 2
+    },
+    "mlp": {
+      "dropout": 0.1,
+      "hidden_dims": [
+        32,
+        32
+      ]
+    }
+  },
+  "paths": {
+    "artifacts_root": "artifacts/runs",
+    "config_snapshot_name": "config_snapshot.yaml",
+    "log_filename": "run.log",
+    "logs_root": "logs",
+    "metadata_name": "metadata.json",
+    "reports_root": "reports",
+    "summary_name": "summary.json"
+  },
+  "project": {
+    "name": "gic",
+    "profile": "phase4_broader_benchmark",
+    "stage": "phase_4"
+  },
+  "reporting": {
+    "ablation_models": [
+      "mlp",
+      "gcn"
+    ],
+    "compare_split": "test",
+    "run_feature_ablations": true,
+    "sparsity_rates": [
+      0.3,
+      0.7,
+      0.9
+    ],
+    "training_epochs": 2
+  },
+  "runtime": {
+    "command": "graph-build-samples",
+    "mode": "development"
+  },
+  "task": {
+    "objective": "regression",
+    "target_level": "bus"
+  },
+  "training": {
+    "batch_size": 8,
+    "epochs": 2,
+    "lr": 0.001,
+    "seed": 42,
+    "weight_decay": 0.0
+  }
+}

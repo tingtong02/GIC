@@ -14,13 +14,18 @@ from gic.graph import (
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PHASE4_CONFIG = ROOT / 'configs/phase4/phase4_dev.yaml'
+PHASE4_CONFIG = ROOT / 'configs/phase4/phase4_broader_benchmark.yaml'
 
 
 def test_graph_export_writes_manifest_and_dataset(tmp_path: Path) -> None:
     config = load_config(PHASE4_CONFIG)
     _, build_context, samples = build_graph_samples_from_config(ROOT, config)
-    split_assignments = build_split_assignments([item.graph_id for item in samples], config['graph']['split'])
+    scenario_group_assignments = {sample.graph_id: str(sample.scenario_id) for sample in samples}
+    split_assignments = build_split_assignments(
+        [item.graph_id for item in samples],
+        config['graph']['split'],
+        group_assignments=scenario_group_assignments,
+    )
     manifest, graph_paths = export_graph_samples(
         project_root=tmp_path,
         graph_config=config['graph'],
@@ -38,3 +43,9 @@ def test_graph_export_writes_manifest_and_dataset(tmp_path: Path) -> None:
     assert loaded_manifest.graph_count == len(samples)
     assert len(dataset) == len(samples)
     assert set(dataset.split_assignments) == {'train', 'val', 'test'}
+    graph_to_scenario = {sample.graph_id: str(sample.scenario_id) for sample in samples}
+    scenario_to_splits: dict[str, set[str]] = {}
+    for split_name, graph_ids in dataset.split_assignments.items():
+        for graph_id in graph_ids:
+            scenario_to_splits.setdefault(graph_to_scenario[graph_id], set()).add(split_name)
+    assert all(len(splits) == 1 for splits in scenario_to_splits.values())

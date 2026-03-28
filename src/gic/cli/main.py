@@ -726,9 +726,16 @@ def _build_phase4_graph_assets(
         raise ValueError("Phase 4 config requires a graph section")
 
     task, build_context, graph_samples = build_graph_samples_from_config(project_root, config)
+    scenario_ids = sorted({str(item.scenario_id) for item in graph_samples if str(item.scenario_id)})
+    scenario_group_assignments = (
+        {item.graph_id: str(item.scenario_id) for item in graph_samples}
+        if len(scenario_ids) > 1
+        else None
+    )
     split_assignments = build_split_assignments(
         [item.graph_id for item in graph_samples],
         graph_cfg.get("split", {}),
+        group_assignments=scenario_group_assignments,
     )
     validations = [validate_graph_sample(item) for item in graph_samples]
     validation_summary = summarize_validation_results(validations)
@@ -737,6 +744,7 @@ def _build_phase4_graph_assets(
         "dataset_name": build_context["dataset_name"],
         "source_case_id": build_context["source_case_id"],
         "scenario_id": build_context["scenario_id"],
+        "scenario_ids": build_context.get("scenario_ids", []),
         "graph_count": len(graph_samples),
         "node_count": len(first_sample.node_records) if first_sample else 0,
         "edge_count": len(first_sample.edge_records) if first_sample else 0,
@@ -752,6 +760,7 @@ def _build_phase4_graph_assets(
         "graph_ids": [item.graph_id for item in graph_samples],
         "split_assignments": split_assignments,
         "validation_summary": validation_summary,
+        "scenario_grouped_split": True,
     }
     return {
         "task": task,
@@ -2050,6 +2059,11 @@ def cmd_train_main_model(args: argparse.Namespace) -> int:
             "test_hotspot_metrics": result.test_hotspot_metrics,
             "best_epoch": result.best_epoch,
             "input_dim": result.input_dim,
+            "model_input_dims": result.model_input_dims,
+            "feature_names": result.feature_names,
+            "feature_summary": result.feature_summary,
+            "signal_summary": result.signal_summary,
+            "dataset_summary": result.dataset_summary,
             "train_example_count": result.train_example_count,
             "val_example_count": result.val_example_count,
             "test_example_count": result.test_example_count,
@@ -2078,6 +2092,9 @@ def cmd_train_main_model(args: argparse.Namespace) -> int:
             "validation_hotspot_metrics": result.validation_hotspot_metrics,
             "test_metrics": result.test_metrics,
             "test_hotspot_metrics": result.test_hotspot_metrics,
+            "feature_summary": result.feature_summary,
+            "signal_summary": result.signal_summary,
+            "dataset_summary": result.dataset_summary,
         }
     )
     return 0
@@ -2134,6 +2151,9 @@ def cmd_eval_main_model(args: argparse.Namespace) -> int:
             "case_studies_path": str(case_studies_path),
             "metrics": payload["metrics"],
             "hotspot_metrics": payload["hotspot_metrics"],
+            "feature_summary": payload["feature_summary"],
+            "signal_summary": payload["signal_summary"],
+            "dataset_summary": payload["dataset_summary"],
         }
     )
     return 0
@@ -2258,11 +2278,14 @@ def cmd_build_main_report(args: argparse.Namespace) -> int:
         "compare_split": compare_split,
         "default_config_path": str(Path(args.config).resolve()),
         "phase4_report_path": str(phase4_report_path),
+        "dataset_summary": default_eval["dataset_summary"],
         "default_run": {
             "checkpoint_path": default_run["checkpoint_path"],
             "history_path": default_run["history_path"],
             "metrics": default_eval["metrics"],
             "hotspot_metrics": default_eval["hotspot_metrics"],
+            "feature_summary": default_eval["feature_summary"],
+            "signal_summary": default_eval["signal_summary"],
             "predictions_path": str(predictions_path),
             "metrics_path": str(metrics_path),
             "hotspot_path": str(hotspot_path),

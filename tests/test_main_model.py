@@ -14,6 +14,7 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
             'dropout': 0.0,
             'temporal_encoder': 'gru',
             'physics_fusion': 'residual',
+            'use_signal_features': True,
             'use_physics_features': True,
             'use_residual': True,
         },
@@ -23,9 +24,19 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
             'uncertainty': False,
         },
     }
-    model = build_main_model(config, input_dim=6)
+    model = build_main_model(
+        config,
+        node_input_dim=6,
+        global_signal_dim=4,
+        node_physics_dim=3,
+        global_physics_dim=5,
+    )
     batch = MainModelInputBundle(
-        sequence_features=torch.randn(2, 3, 4, 6),
+        sequence_node_features=torch.randn(2, 3, 4, 6),
+        sequence_global_signal_features=torch.randn(2, 3, 4),
+        node_physics_features=torch.randn(2, 4, 3),
+        global_physics_features=torch.randn(2, 5),
+        physics_quality_mask=torch.tensor([[1.0, 0.5, 1.0, 0.0], [1.0, 1.0, 0.5, 1.0]], dtype=torch.float32),
         adjacency=torch.eye(4).repeat(2, 1, 1),
         regression_targets=torch.randn(2, 4),
         hotspot_targets=torch.randint(0, 2, (2, 4), dtype=torch.float32),

@@ -1,0 +1,36 @@
+{
+  "graph": {
+    "dataset_name": "case118_graph_broader",
+    "include_edge_features": true,
+    "include_physics_baseline": true,
+    "include_signal_features": true,
+    "mask_seed": 42,
+    "node_type": "bus",
+    "output_root": "data/processed/graph_ready",
+    "physics_case_path": "data/processed/physics_ready/physics_matpower_case118_sample.json",
+    "signal_manifest_path": "data/processed/signal_ready/manifests/signal_sample_geomagnetic_storm_day_fastica.manifest.json",
+    "solution_paths": [
+      "data/processed/physics_ready/timeseries_matpower_case118_sample_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_0p5_90_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_1p0_90_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_0_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_45_solutions.json",
+      "data/processed/physics_ready/sweep_matpower_case118_sample_2p0_90_solutions.json"
+    ],
+    "sparsity_rate": 0.7,
+    "split": {
+      "seed": 1,
+      "test": 0.2,
+      "train": 0.6,
+      "val": 0.2
+    }
+  },
+  "task": {
+    "objective": "regression",
+    "target_level": "bus"
+  }
+}
