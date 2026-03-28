@@ -1,0 +1,19 @@
+{
+  "defaults": [
+    "relation_light_base.yaml"
+  ],
+  "project": {
+    "profile": "phase6_relation_light_h96_lr5e4_g005_d01"
+  },
+  "model": {
+    "hidden_dim": 96
+  },
+  "training": {
+    "lr": 0.0005
+  },
+  "fusion": {
+    "kg_gate_init": 0.05,
+    "relation_gate_init": 0.05,
+    "kg_dropout": 0.1
+  }
+}

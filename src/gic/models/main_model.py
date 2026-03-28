@@ -20,6 +20,8 @@ class MainModelInputBundle:
     sequence_global_signal_features: torch.Tensor
     sequence_node_kg_features: torch.Tensor
     sequence_global_kg_features: torch.Tensor
+    sequence_node_relation_features: torch.Tensor
+    sequence_global_relation_features: torch.Tensor
     node_physics_features: torch.Tensor
     global_physics_features: torch.Tensor
     physics_quality_mask: torch.Tensor
@@ -36,6 +38,8 @@ class MainModelInputBundle:
             sequence_global_signal_features=self.sequence_global_signal_features.to(device),
             sequence_node_kg_features=self.sequence_node_kg_features.to(device),
             sequence_global_kg_features=self.sequence_global_kg_features.to(device),
+            sequence_node_relation_features=self.sequence_node_relation_features.to(device),
+            sequence_global_relation_features=self.sequence_global_relation_features.to(device),
             node_physics_features=self.node_physics_features.to(device),
             global_physics_features=self.global_physics_features.to(device),
             physics_quality_mask=self.physics_quality_mask.to(device),
@@ -74,10 +78,13 @@ class Phase5MainModel(nn.Module):
         global_physics_dim: int = 0,
         node_kg_dim: int = 0,
         global_kg_dim: int = 0,
+        node_relation_dim: int = 0,
+        global_relation_dim: int = 0,
     ) -> None:
         super().__init__()
         model_cfg = dict(config.get('model', {}))
         tasks_cfg = dict(config.get('tasks', {}))
+        fusion_cfg = dict(config.get('fusion', {}))
         dropout = float(model_cfg.get('dropout', 0.1))
         self.hidden_dim = int(model_cfg.get('hidden_dim', 32))
         self.graph_backbone = str(model_cfg.get('graph_backbone', 'graphsage'))
@@ -90,13 +97,19 @@ class Phase5MainModel(nn.Module):
         self.use_signal_features = bool(model_cfg.get('use_signal_features', True))
         self.use_physics_features = bool(model_cfg.get('use_physics_features', True))
         self.use_kg_features = bool(model_cfg.get('use_kg_features', False))
+        self.use_relation_light = bool(dict(config.get('kg', {})).get('use_relation_light', False))
         self.input_encoder = InputEncoder(
             node_input_dim=node_input_dim,
             hidden_dim=self.hidden_dim,
             global_signal_dim=global_signal_dim if self.use_signal_features else 0,
             node_kg_dim=node_kg_dim if self.use_kg_features else 0,
             global_kg_dim=global_kg_dim if self.use_kg_features else 0,
+            node_relation_dim=node_relation_dim if self.use_relation_light else 0,
+            global_relation_dim=global_relation_dim if self.use_relation_light else 0,
             dropout=dropout,
+            kg_dropout=float(fusion_cfg.get('kg_dropout', 0.0)),
+            kg_gate_init=float(fusion_cfg.get('kg_gate_init', 0.1)),
+            relation_gate_init=float(fusion_cfg.get('relation_gate_init', fusion_cfg.get('kg_gate_init', 0.1))),
         )
         self.temporal_encoder = TemporalEncoder(
             input_dim=self.hidden_dim,
@@ -146,6 +159,8 @@ class Phase5MainModel(nn.Module):
             batch.sequence_global_signal_features if self.use_signal_features else None,
             batch.sequence_node_kg_features if self.use_kg_features else None,
             batch.sequence_global_kg_features if self.use_kg_features else None,
+            batch.sequence_node_relation_features if self.use_relation_light else None,
+            batch.sequence_global_relation_features if self.use_relation_light else None,
         )
         temporal_state = self.temporal_encoder(encoded)
         graph_state = self._apply_graph_backbone(temporal_state, batch.adjacency)
@@ -188,6 +203,8 @@ def build_main_model(
     global_physics_dim: int = 0,
     node_kg_dim: int = 0,
     global_kg_dim: int = 0,
+    node_relation_dim: int = 0,
+    global_relation_dim: int = 0,
 ) -> Phase5MainModel:
     resolved_node_input_dim = node_input_dim if node_input_dim is not None else input_dim
     if resolved_node_input_dim is None:
@@ -200,4 +217,6 @@ def build_main_model(
         global_physics_dim=global_physics_dim,
         node_kg_dim=node_kg_dim,
         global_kg_dim=global_kg_dim,
+        node_relation_dim=node_relation_dim,
+        global_relation_dim=global_relation_dim,
     )

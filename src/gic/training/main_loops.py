@@ -77,6 +77,8 @@ class FeatureTransformBundle:
     global_physics_features: FeatureGroupTransform
     node_kg_features: FeatureGroupTransform
     global_kg_features: FeatureGroupTransform
+    node_relation_features: FeatureGroupTransform
+    global_relation_features: FeatureGroupTransform
 
     def combined_active_feature_names(self) -> list[str]:
         return [
@@ -86,6 +88,8 @@ class FeatureTransformBundle:
             *self.global_physics_features.active_names,
             *self.node_kg_features.active_names,
             *self.global_kg_features.active_names,
+            *self.node_relation_features.active_names,
+            *self.global_relation_features.active_names,
         ]
 
     def feature_summary(self) -> dict[str, Any]:
@@ -96,6 +100,8 @@ class FeatureTransformBundle:
             'global_physics_features': self.global_physics_features.summary(),
             'node_kg_features': self.node_kg_features.summary(),
             'global_kg_features': self.global_kg_features.summary(),
+            'node_relation_features': self.node_relation_features.summary(),
+            'global_relation_features': self.global_relation_features.summary(),
         }
 
     def model_input_dims(self) -> dict[str, int]:
@@ -106,6 +112,8 @@ class FeatureTransformBundle:
             'global_physics_dim': self.global_physics_features.dim,
             'node_kg_dim': self.node_kg_features.dim,
             'global_kg_dim': self.global_kg_features.dim,
+            'node_relation_dim': self.node_relation_features.dim,
+            'global_relation_dim': self.global_relation_features.dim,
         }
 
     def to_metadata(self) -> dict[str, Any]:
@@ -116,6 +124,8 @@ class FeatureTransformBundle:
             'global_physics_features': self.global_physics_features.to_metadata(),
             'node_kg_features': self.node_kg_features.to_metadata(),
             'global_kg_features': self.global_kg_features.to_metadata(),
+            'node_relation_features': self.node_relation_features.to_metadata(),
+            'global_relation_features': self.global_relation_features.to_metadata(),
         }
 
     @classmethod
@@ -127,6 +137,8 @@ class FeatureTransformBundle:
             global_physics_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_physics_features', {}))),
             node_kg_features=FeatureGroupTransform.from_metadata(dict(payload.get('node_kg_features', {}))),
             global_kg_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_kg_features', {}))),
+            node_relation_features=FeatureGroupTransform.from_metadata(dict(payload.get('node_relation_features', {}))),
+            global_relation_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_relation_features', {}))),
         )
 
 
@@ -229,6 +241,43 @@ def _flatten_sequence_global_kg_rows(examples: list[TemporalGraphSequenceExample
     return _stack_feature_rows(rows, feature_count)
 
 
+def _kg_feature_groups(config: dict[str, Any]) -> dict[str, bool]:
+    kg_cfg = dict(config.get('kg', {}))
+    feature_groups = dict(kg_cfg.get('feature_groups', {})) if isinstance(kg_cfg.get('feature_groups', {}), dict) else {}
+    return {
+        'topology_context': bool(feature_groups.get('topology_context', True)),
+        'scenario_context': bool(feature_groups.get('scenario_context', True)),
+        'reliability_context': bool(feature_groups.get('reliability_context', True)),
+    }
+
+
+def _kg_feature_group_name(name: str, kg_feature_payload: dict[str, Any] | None, *, feature_kind: str) -> str:
+    if name.startswith('kg.rule.'):
+        return 'rule_context'
+    if name.startswith('kg.rel.'):
+        return 'relation_context'
+    if kg_feature_payload:
+        group_map = dict(kg_feature_payload.get('feature_groups', {}).get(feature_kind, {}))
+        resolved = group_map.get(name)
+        if isinstance(resolved, str) and resolved:
+            return resolved
+    if 'scenario_' in name or 'time_minutes_from_start' in name:
+        return 'scenario_context'
+    if any(token in name for token in ['assumption', 'quality', 'signal_manifest', 'observed_fraction', 'hidden_fraction']):
+        return 'reliability_context'
+    return 'topology_context'
+
+
+def _kg_name_enabled(name: str, config: dict[str, Any], kg_feature_payload: dict[str, Any] | None, *, feature_kind: str) -> bool:
+    kg_cfg = dict(config.get('kg', {}))
+    if name.startswith('kg.rule.'):
+        return bool(kg_cfg.get('use_rule_layer', True))
+    if name.startswith('kg.rel.'):
+        return bool(kg_cfg.get('use_relation_light', False))
+    group_flags = _kg_feature_groups(config)
+    return bool(group_flags.get(_kg_feature_group_name(name, kg_feature_payload, feature_kind=feature_kind), True))
+
+
 def _build_feature_group_transform(
     *,
     group_name: str,
@@ -236,23 +285,28 @@ def _build_feature_group_transform(
     values: torch.Tensor,
     enabled: bool,
     drop_zero_variance: bool = True,
+    source_feature_names: list[str] | None = None,
 ) -> FeatureGroupTransform:
-    if not enabled or not feature_names:
-        return FeatureGroupTransform(group_name, list(feature_names), [], [], [], [], [])
-    feature_count = len(feature_names)
+    raw_feature_names = list(source_feature_names if source_feature_names is not None else feature_names)
+    allowed_feature_names = list(feature_names)
+    if not enabled or not allowed_feature_names:
+        return FeatureGroupTransform(group_name, list(allowed_feature_names), [], [], [], [], [])
+    feature_count = len(raw_feature_names)
     if values.ndim != 2 or values.shape[1] != feature_count:
         values = torch.zeros((0, feature_count), dtype=torch.float32)
     variances = values.var(dim=0, unbiased=False) if values.shape[0] > 0 else torch.zeros(feature_count, dtype=torch.float32)
     active_indices: list[int] = []
     dropped_zero_variance: list[str] = []
-    for index, name in enumerate(feature_names):
-        variance = float(variances[index].item()) if variances.numel() > 0 else 0.0
+    for raw_index, name in enumerate(raw_feature_names):
+        if name not in allowed_feature_names:
+            continue
+        variance = float(variances[raw_index].item()) if variances.numel() > 0 else 0.0
         if drop_zero_variance and variance <= 1e-12:
             dropped_zero_variance.append(name)
             continue
-        active_indices.append(index)
+        active_indices.append(raw_index)
     if not active_indices:
-        return FeatureGroupTransform(group_name, list(feature_names), [], [], [], [], dropped_zero_variance)
+        return FeatureGroupTransform(group_name, list(allowed_feature_names), [], [], [], [], dropped_zero_variance)
     selected = values[:, active_indices] if values.shape[0] > 0 else torch.zeros((0, len(active_indices)), dtype=torch.float32)
     if selected.shape[0] == 0:
         mean = [0.0 for _ in active_indices]
@@ -264,22 +318,29 @@ def _build_feature_group_transform(
         std = [float(item) for item in std_tensor.tolist()]
     return FeatureGroupTransform(
         group_name=group_name,
-        feature_names=list(feature_names),
+        feature_names=list(allowed_feature_names),
         active_indices=active_indices,
-        active_names=[feature_names[index] for index in active_indices],
+        active_names=[raw_feature_names[index] for index in active_indices],
         mean=mean,
         std=std,
         dropped_zero_variance=dropped_zero_variance,
     )
 
 
-def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], config: dict[str, Any]) -> FeatureTransformBundle:
+def _prepare_feature_transforms(
+    examples: list[TemporalGraphSequenceExample],
+    config: dict[str, Any],
+    *,
+    kg_feature_payload: dict[str, Any] | None = None,
+) -> FeatureTransformBundle:
     if not examples:
         raise ValueError('Feature transforms require at least one training example')
     model_cfg = dict(config.get('model', {}))
     use_signal_features = bool(model_cfg.get('use_signal_features', True))
     use_physics_features = bool(model_cfg.get('use_physics_features', True))
     use_kg_features = bool(model_cfg.get('use_kg_features', False))
+    raw_node_kg_names = list(examples[0].node_kg_feature_names)
+    raw_global_kg_names = list(examples[0].global_kg_feature_names)
     node_transform = _build_feature_group_transform(
         group_name='node_features',
         feature_names=list(examples[0].node_feature_names),
@@ -310,17 +371,41 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
     )
     node_kg_transform = _build_feature_group_transform(
         group_name='node_kg_features',
-        feature_names=list(examples[0].node_kg_feature_names),
+        feature_names=[
+            name for name in raw_node_kg_names
+            if _kg_name_enabled(name, config, kg_feature_payload, feature_kind='node') and not name.startswith('kg.rel.')
+        ],
         values=_flatten_sequence_node_kg_rows(examples),
         enabled=use_kg_features,
         drop_zero_variance=True,
+        source_feature_names=raw_node_kg_names,
     )
     global_kg_transform = _build_feature_group_transform(
         group_name='global_kg_features',
-        feature_names=list(examples[0].global_kg_feature_names),
+        feature_names=[
+            name for name in raw_global_kg_names
+            if _kg_name_enabled(name, config, kg_feature_payload, feature_kind='global') and not name.startswith('kg.rel.')
+        ],
         values=_flatten_sequence_global_kg_rows(examples),
         enabled=use_kg_features,
         drop_zero_variance=True,
+        source_feature_names=raw_global_kg_names,
+    )
+    node_relation_transform = _build_feature_group_transform(
+        group_name='node_relation_features',
+        feature_names=[name for name in raw_node_kg_names if name.startswith('kg.rel.')],
+        values=_flatten_sequence_node_kg_rows(examples),
+        enabled=bool(dict(config.get('kg', {})).get('use_relation_light', False)),
+        drop_zero_variance=True,
+        source_feature_names=raw_node_kg_names,
+    )
+    global_relation_transform = _build_feature_group_transform(
+        group_name='global_relation_features',
+        feature_names=[name for name in raw_global_kg_names if name.startswith('kg.rel.')],
+        values=_flatten_sequence_global_kg_rows(examples),
+        enabled=bool(dict(config.get('kg', {})).get('use_relation_light', False)),
+        drop_zero_variance=True,
+        source_feature_names=raw_global_kg_names,
     )
     if node_transform.dim == 0:
         raise ValueError('Phase 5 feature selection removed every node input feature')
@@ -331,6 +416,8 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
         global_physics_features=global_physics_transform,
         node_kg_features=node_kg_transform,
         global_kg_features=global_kg_transform,
+        node_relation_features=node_relation_transform,
+        global_relation_features=global_relation_transform,
     )
 
 
@@ -338,7 +425,14 @@ def _select_and_normalize(values: torch.Tensor, transform: FeatureGroupTransform
     batch_shape = values.shape[:-1]
     if transform.dim == 0:
         return values.new_zeros(*batch_shape, 0)
-    index_tensor = torch.tensor(transform.active_indices, dtype=torch.long)
+    required_dim = max(transform.active_indices) + 1 if transform.active_indices else 0
+    current_dim = int(values.shape[-1]) if values.ndim > 0 else 0
+    if required_dim > current_dim:
+        padded = values.new_zeros(*batch_shape, required_dim)
+        if current_dim > 0:
+            padded[..., :current_dim] = values
+        values = padded
+    index_tensor = torch.tensor(transform.active_indices, dtype=torch.long, device=values.device)
     selected = values.index_select(-1, index_tensor)
     shape = [1] * (selected.ndim - 1) + [transform.dim]
     mean = selected.new_tensor(transform.mean).view(*shape)
@@ -382,6 +476,8 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], transf
         sequence_global_signal_features=_select_and_normalize(sequence_signal_tensor, transforms.global_signal_features),
         sequence_node_kg_features=_select_and_normalize(sequence_node_kg_tensor, transforms.node_kg_features),
         sequence_global_kg_features=_select_and_normalize(sequence_global_kg_tensor, transforms.global_kg_features),
+        sequence_node_relation_features=_select_and_normalize(sequence_node_kg_tensor, transforms.node_relation_features),
+        sequence_global_relation_features=_select_and_normalize(sequence_global_kg_tensor, transforms.global_relation_features),
         node_physics_features=_select_and_normalize(node_physics_tensor, transforms.node_physics_features),
         global_physics_features=_select_and_normalize(global_physics_tensor, transforms.global_physics_features),
         physics_quality_mask=torch.tensor([item.physics_quality_mask for item in items], dtype=torch.float32),
@@ -528,17 +624,49 @@ def _signal_summary(examples: list[TemporalGraphSequenceExample], transforms: Fe
 def _kg_summary(transforms: FeatureTransformBundle, kg_feature_payload: dict[str, Any] | None, config: dict[str, Any]) -> dict[str, Any]:
     model_cfg = dict(config.get('model', {}))
     kg_cfg = dict(config.get('kg', {}))
+    feature_groups = _kg_feature_groups(config)
+    global_group_map = dict(kg_feature_payload.get('feature_groups', {}).get('global', {})) if kg_feature_payload else {}
+    node_group_map = dict(kg_feature_payload.get('feature_groups', {}).get('node', {})) if kg_feature_payload else {}
+
+    def _group_active(names: list[str], mapping: dict[str, str], target_group: str) -> list[str]:
+        return [name for name in names if mapping.get(name) == target_group]
+
     return {
         'enabled': bool(model_cfg.get('use_kg_features', False)) and bool(kg_feature_payload),
         'configured_use_rule_layer': bool(kg_cfg.get('use_rule_layer', True)),
+        'configured_use_relation_light': bool(kg_cfg.get('use_relation_light', False)),
+        'feature_group_flags': dict(feature_groups),
         'active_global_feature_count': transforms.global_kg_features.dim,
         'active_global_feature_names': list(transforms.global_kg_features.active_names),
         'dropped_global_zero_variance': list(transforms.global_kg_features.dropped_zero_variance),
         'active_node_feature_count': transforms.node_kg_features.dim,
         'active_node_feature_names': list(transforms.node_kg_features.active_names),
         'dropped_node_zero_variance': list(transforms.node_kg_features.dropped_zero_variance),
+        'active_relation_global_feature_count': transforms.global_relation_features.dim,
+        'active_relation_global_feature_names': list(transforms.global_relation_features.active_names),
+        'active_relation_node_feature_count': transforms.node_relation_features.dim,
+        'active_relation_node_feature_names': list(transforms.node_relation_features.active_names),
         'graph_count': int(kg_feature_payload.get('graph_count', 0)) if kg_feature_payload else 0,
         'rule_feature_count': sum(1 for name in transforms.global_kg_features.active_names if name.startswith('kg.rule.')),
+        'rule_zero_variance_count': sum(1 for name in transforms.global_kg_features.dropped_zero_variance if name.startswith('kg.rule.')),
+        'feature_group_summary': {
+            'global': {
+                'topology_context': _group_active(transforms.global_kg_features.active_names, global_group_map, 'topology_context'),
+                'scenario_context': _group_active(transforms.global_kg_features.active_names, global_group_map, 'scenario_context'),
+                'reliability_context': _group_active(transforms.global_kg_features.active_names, global_group_map, 'reliability_context'),
+                'rule_context': [name for name in transforms.global_kg_features.active_names if name.startswith('kg.rule.')],
+                'relation_context': list(transforms.global_relation_features.active_names),
+            },
+            'node': {
+                'topology_context': _group_active(transforms.node_kg_features.active_names, node_group_map, 'topology_context'),
+                'reliability_context': _group_active(transforms.node_kg_features.active_names, node_group_map, 'reliability_context'),
+                'relation_context': list(transforms.node_relation_features.active_names),
+            },
+        },
+        'rule_variance_summary': {
+            'active_rule_features': [name for name in transforms.global_kg_features.active_names if name.startswith('kg.rule.')],
+            'dropped_rule_features': [name for name in transforms.global_kg_features.dropped_zero_variance if name.startswith('kg.rule.')],
+        },
     }
 
 
@@ -643,7 +771,7 @@ def train_main_model(
     if not val_examples:
         raise ValueError(f'Validation split is empty for temporal examples: {dataset_path}')
 
-    transforms = _prepare_feature_transforms(train_examples, config)
+    transforms = _prepare_feature_transforms(train_examples, config, kg_feature_payload=kg_feature_payload)
     active_feature_names = transforms.combined_active_feature_names()
     input_dims = transforms.model_input_dims()
     model = build_main_model(
@@ -654,6 +782,8 @@ def train_main_model(
         global_physics_dim=input_dims['global_physics_dim'],
         node_kg_dim=input_dims['node_kg_dim'],
         global_kg_dim=input_dims['global_kg_dim'],
+        node_relation_dim=input_dims['node_relation_dim'],
+        global_relation_dim=input_dims['global_relation_dim'],
     )
     composer = LossComposer(config)
     device = _resolve_runtime_device(config)
@@ -759,8 +889,13 @@ def train_main_model(
     )
 
 
-def _legacy_transforms(examples: list[TemporalGraphSequenceExample], config: dict[str, Any]) -> FeatureTransformBundle:
-    return _prepare_feature_transforms(examples, config)
+def _legacy_transforms(
+    examples: list[TemporalGraphSequenceExample],
+    config: dict[str, Any],
+    *,
+    kg_feature_payload: dict[str, Any] | None = None,
+) -> FeatureTransformBundle:
+    return _prepare_feature_transforms(examples, config, kg_feature_payload=kg_feature_payload)
 
 
 def _checkpoint_metadata(checkpoint_path: str | Path) -> dict[str, Any]:
@@ -803,7 +938,7 @@ def evaluate_main_model(
     checkpoint_payload = torch.load(Path(checkpoint_path), map_location='cpu')
     checkpoint_metadata = dict(checkpoint_payload.get('metadata', {}))
     transforms_payload = checkpoint_metadata.get('feature_transforms')
-    transforms = FeatureTransformBundle.from_metadata(dict(transforms_payload)) if isinstance(transforms_payload, dict) else _legacy_transforms(examples, config)
+    transforms = FeatureTransformBundle.from_metadata(dict(transforms_payload)) if isinstance(transforms_payload, dict) else _legacy_transforms(examples, config, kg_feature_payload=kg_feature_payload)
     input_dims = transforms.model_input_dims()
     model = build_main_model(
         config,
@@ -813,6 +948,8 @@ def evaluate_main_model(
         global_physics_dim=input_dims['global_physics_dim'],
         node_kg_dim=input_dims['node_kg_dim'],
         global_kg_dim=input_dims['global_kg_dim'],
+        node_relation_dim=input_dims['node_relation_dim'],
+        global_relation_dim=input_dims['global_relation_dim'],
     )
     model.load_state_dict(checkpoint_payload['model_state'])
     device = _resolve_runtime_device(config)

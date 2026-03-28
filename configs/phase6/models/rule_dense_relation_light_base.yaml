@@ -3,7 +3,7 @@
     "../phase6_dev.yaml"
   ],
   "project": {
-    "profile": "phase6_kg_default"
+    "profile": "phase6_rule_dense_relation_light_base"
   },
   "model": {
     "use_kg_features": true
@@ -14,6 +14,6 @@
   "kg": {
     "use_feature_enhancement": true,
     "use_rule_layer": true,
-    "use_relation_light": false
+    "use_relation_light": true
   }
 }

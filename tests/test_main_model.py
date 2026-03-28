@@ -19,6 +19,14 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
             'use_kg_features': True,
             'use_residual': True,
         },
+        'fusion': {
+            'kg_dropout': 0.0,
+            'kg_gate_init': 0.05,
+            'relation_gate_init': 0.05,
+        },
+        'kg': {
+            'use_relation_light': True,
+        },
         'tasks': {
             'hotspot': True,
             'risk_score': False,
@@ -33,12 +41,16 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
         global_physics_dim=5,
         node_kg_dim=2,
         global_kg_dim=3,
+        node_relation_dim=2,
+        global_relation_dim=2,
     )
     batch = MainModelInputBundle(
         sequence_node_features=torch.randn(2, 3, 4, 6),
         sequence_global_signal_features=torch.randn(2, 3, 4),
         sequence_node_kg_features=torch.randn(2, 3, 4, 2),
         sequence_global_kg_features=torch.randn(2, 3, 3),
+        sequence_node_relation_features=torch.randn(2, 3, 4, 2),
+        sequence_global_relation_features=torch.randn(2, 3, 2),
         node_physics_features=torch.randn(2, 4, 3),
         global_physics_features=torch.randn(2, 5),
         physics_quality_mask=torch.tensor([[1.0, 0.5, 1.0, 0.0], [1.0, 1.0, 0.5, 1.0]], dtype=torch.float32),

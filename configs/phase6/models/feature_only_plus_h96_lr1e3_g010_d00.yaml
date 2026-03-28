@@ -1,0 +1,19 @@
+{
+  "defaults": [
+    "feature_only_plus_base.yaml"
+  ],
+  "project": {
+    "profile": "phase6_feature_only_plus_h96_lr1e3_g010_d00"
+  },
+  "model": {
+    "hidden_dim": 96
+  },
+  "training": {
+    "lr": 0.001
+  },
+  "fusion": {
+    "kg_gate_init": 0.1,
+    "relation_gate_init": 0.1,
+    "kg_dropout": 0.0
+  }
+}

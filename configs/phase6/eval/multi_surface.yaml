@@ -1,0 +1,28 @@
+{
+  "surfaces": [
+    {
+      "name": "case118_graph_broader",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json"
+    },
+    {
+      "name": "case118_graph_broader_s30",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader_s30.json"
+    },
+    {
+      "name": "case118_graph_broader_s70",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader_s70.json"
+    },
+    {
+      "name": "case118_graph_broader_s90",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader_s90.json"
+    },
+    {
+      "name": "case118_graph_broader_signal_off",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader_signal_off.json"
+    },
+    {
+      "name": "case118_graph_broader_physics_off",
+      "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader_physics_off.json"
+    }
+  ]
+}

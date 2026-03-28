@@ -3,7 +3,7 @@
     "../phase6_dev.yaml"
   ],
   "project": {
-    "profile": "phase6_kg_default"
+    "profile": "phase6_rule_dense_base"
   },
   "model": {
     "use_kg_features": true

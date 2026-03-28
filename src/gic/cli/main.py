@@ -49,6 +49,7 @@ from gic.eval import (
     build_phase5_report_markdown,
     compare_metric_rows,
     compare_with_phase4_report,
+    hidden_mae_from_metrics,
     write_json_report,
     write_markdown_report,
 )
@@ -58,6 +59,7 @@ from gic.kg import build_kg_bundle, build_schema_definition, export_kg_bundle, e
 from gic.training import (
     evaluate_baseline_model,
     evaluate_main_model,
+    evaluate_phase6_surface_runs,
     run_phase5_ablation_suite,
     run_phase6_ablation_suite,
     train_baseline_model,
@@ -2516,6 +2518,64 @@ def cmd_kg_export_features(args: argparse.Namespace) -> int:
     return 0
 
 
+def _phase6_default_promotion_decision(
+    *,
+    config: dict[str, Any],
+    dataset_name: str,
+    ablation_payload: dict[str, Any],
+    surface_results: dict[str, Any],
+) -> dict[str, Any]:
+    evaluation_cfg = dict(config.get("evaluation", {}))
+    current_default_variant = str(evaluation_cfg.get("current_phase6_default_variant", "feature_only"))
+    current_default_hidden_mae = float(evaluation_cfg.get("current_phase6_default_hidden_mae", 5.947530508041382))
+    risk_surface_degradation_tolerance = float(evaluation_cfg.get("risk_surface_degradation_tolerance", 0.15))
+    risk_surface_failure_limit = int(evaluation_cfg.get("risk_surface_failure_limit", 1))
+
+    best_run = dict(ablation_payload.get("best_run", {}))
+    best_variant = str(best_run.get("variant_name", current_default_variant))
+    best_hidden_mae = hidden_mae_from_metrics(dict(best_run.get("metrics", {}))) if best_run else None
+
+    current_surface_payload = dict(surface_results.get(current_default_variant, {}))
+    candidate_surface_payload = dict(surface_results.get(best_variant, {}))
+    degraded_surfaces: list[str] = []
+    for surface_name, baseline_metrics in sorted(current_surface_payload.items()):
+        if surface_name == dataset_name:
+            continue
+        if not isinstance(baseline_metrics, dict):
+            continue
+        candidate_metrics = dict(candidate_surface_payload.get(surface_name, {}))
+        baseline_hidden_mae = baseline_metrics.get("hidden_mae")
+        candidate_hidden_mae = candidate_metrics.get("hidden_mae")
+        if baseline_hidden_mae is None or candidate_hidden_mae is None:
+            continue
+        baseline_value = float(baseline_hidden_mae)
+        candidate_value = float(candidate_hidden_mae)
+        if baseline_value <= 0.0:
+            continue
+        if candidate_value > baseline_value * (1.0 + risk_surface_degradation_tolerance):
+            degraded_surfaces.append(surface_name)
+
+    promote = (
+        best_variant != current_default_variant
+        and best_hidden_mae is not None
+        and float(best_hidden_mae) < current_default_hidden_mae
+        and len(degraded_surfaces) <= risk_surface_failure_limit
+    )
+    return {
+        "primary_surface": dataset_name,
+        "current_default_variant": current_default_variant,
+        "current_default_hidden_mae": current_default_hidden_mae,
+        "candidate_variant": best_variant,
+        "candidate_hidden_mae": best_hidden_mae,
+        "risk_surface_degradation_tolerance": risk_surface_degradation_tolerance,
+        "risk_surface_failure_limit": risk_surface_failure_limit,
+        "degraded_surface_count": len(degraded_surfaces),
+        "degraded_surfaces": degraded_surfaces,
+        "promote_new_default": promote,
+        "summary": "promote_candidate" if promote else "keep_current_default",
+    }
+
+
 def cmd_kg_run_ablation(args: argparse.Namespace) -> int:
     config, project_root = _load_phase6_context(args)
     dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
@@ -2599,6 +2659,18 @@ def cmd_kg_build_report(args: argparse.Namespace) -> int:
         )
         for identifier in query_ids
     ]
+    surface_results = evaluate_phase6_surface_runs(
+        base_config=config,
+        runs=list(ablation_payload.get("runs", [])),
+        compare_split=compare_split,
+        project_root=project_root,
+    )
+    default_promotion_decision = _phase6_default_promotion_decision(
+        config=config,
+        dataset_name=build_result.dataset_name,
+        ablation_payload=ablation_payload,
+        surface_results=surface_results,
+    )
     report_payload = build_kg_report_payload(
         dataset_name=build_result.dataset_name,
         dataset_path=str(dataset_path),
@@ -2609,6 +2681,8 @@ def cmd_kg_build_report(args: argparse.Namespace) -> int:
         query_examples=queries,
         phase5_report_path=str(evaluation_cfg.get("phase5_report_path", "")) if evaluation_cfg.get("compare_with_phase5_default", False) else None,
         ablation_payload=ablation_payload,
+        surface_results=surface_results,
+        default_promotion_decision=default_promotion_decision,
     )
     report_payload["paths"] = {**export_paths, "schema": schema_path, "model_ablation": str(ablation_report_path)}
     report_path = write_json_report(report_payload, context.report_dir / "phase6_kg_report.json")

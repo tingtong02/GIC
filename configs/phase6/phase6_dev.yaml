@@ -1,8 +1,7 @@
 {
   "defaults": [
     "../phase5/phase5_broader_benchmark.yaml",
-    "kg/schema_default.yaml",
-    "kg/kg_default.yaml",
+    "kg/feature_only.yaml",
     "ablations/kg_ablation.yaml"
   ],
   "project": {
@@ -11,23 +10,39 @@
   },
   "runtime": {
     "mode": "development",
-    "command": "kg-build-report"
+    "command": "kg-build-report",
+    "device": "auto"
   },
   "model": {
     "use_kg_features": true
   },
   "kg": {
     "enabled": true,
-    "output_root": "data/processed/kg"
+    "output_root": "data/processed/kg",
+    "use_relation_light": false,
+    "feature_groups": {
+      "topology_context": true,
+      "scenario_context": true,
+      "reliability_context": true
+    }
   },
   "fusion": {
     "inject_into_main_model": true,
-    "export_kg_features": true
+    "export_kg_features": true,
+    "kg_gate_init": 0.05,
+    "relation_gate_init": 0.05,
+    "kg_dropout": 0.0
   },
   "evaluation": {
     "compare_with_phase5_default": true,
     "phase5_report_path": "reports/phase_5_20260328T031108Z_94664593/phase5_main_report.json",
     "export_queries": true,
-    "query_example_count": 3
+    "query_example_count": 3,
+    "multi_surface_config_path": "configs/phase6/eval/multi_surface.yaml",
+    "current_phase6_default_variant": "feature_only",
+    "current_phase6_default_config_path": "configs/phase6/models/feature_only_full.yaml",
+    "current_phase6_default_hidden_mae": 5.947530508041382,
+    "risk_surface_degradation_tolerance": 0.15,
+    "risk_surface_failure_limit": 1
   }
 }

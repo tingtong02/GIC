@@ -1,0 +1,26 @@
+{
+  "defaults": [
+    "rule_dense_relation_light_base.yaml"
+  ],
+  "project": {
+    "profile": "phase6_rule_dense_relation_light_scenario_off_h128_lr1e3_g003_d00"
+  },
+  "model": {
+    "hidden_dim": 128
+  },
+  "training": {
+    "lr": 0.001
+  },
+  "fusion": {
+    "kg_gate_init": 0.03,
+    "relation_gate_init": 0.03,
+    "kg_dropout": 0.0
+  },
+  "kg": {
+    "feature_groups": {
+      "topology_context": true,
+      "scenario_context": false,
+      "reliability_context": true
+    }
+  }
+}

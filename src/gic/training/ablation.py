@@ -4,6 +4,11 @@ import json
 from pathlib import Path
 from typing import Any
 
+try:
+    import yaml  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover
+    yaml = None
+
 from gic.config import load_config
 from gic.eval.comparison_reports import compare_with_phase4_report, hidden_mae_from_metrics
 from gic.training.main_loops import evaluate_main_model, train_main_model
@@ -62,6 +67,78 @@ def _phase5_control_summary(report_path: str | Path | None) -> dict[str, Any] | 
         'hidden_mae': hidden_mae_from_metrics(metrics) if metrics else None,
         'metrics': metrics,
     }
+
+
+def _surface_specs_from_config(config: dict[str, Any], *, project_root: str | Path | None) -> list[dict[str, str]]:
+    evaluation_cfg = dict(config.get('evaluation', {}))
+    payload: dict[str, Any] = {}
+    config_path_text = str(evaluation_cfg.get('multi_surface_config_path', '')).strip()
+    if config_path_text:
+        resolved = Path(config_path_text)
+        if not resolved.is_absolute() and project_root is not None:
+            resolved = (Path(project_root).resolve() / config_path_text).resolve()
+        text = resolved.read_text(encoding='utf-8')
+        if yaml is not None:
+            parsed = yaml.safe_load(text) or {}
+        else:
+            parsed = json.loads(text)
+        if not isinstance(parsed, dict):
+            raise ValueError(f'Invalid multi-surface payload: {resolved}')
+        payload = parsed
+    else:
+        payload = dict(evaluation_cfg.get('multi_surface', {}))
+    surfaces = payload.get('surfaces', []) if isinstance(payload, dict) else []
+    resolved_specs: list[dict[str, str]] = []
+    for item in surfaces:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get('name', '')).strip()
+        dataset_path = str(item.get('dataset_path', '')).strip()
+        if not name or not dataset_path:
+            continue
+        resolved_dataset_path = Path(dataset_path)
+        if not resolved_dataset_path.is_absolute() and project_root is not None:
+            resolved_dataset_path = (Path(project_root).resolve() / dataset_path).resolve()
+        resolved_specs.append({'name': name, 'dataset_path': str(resolved_dataset_path)})
+    return resolved_specs
+
+
+def evaluate_phase6_surface_runs(
+    *,
+    base_config: dict[str, Any],
+    runs: list[dict[str, Any]],
+    compare_split: str,
+    project_root: str | Path | None,
+) -> dict[str, Any]:
+    surface_specs = _surface_specs_from_config(base_config, project_root=project_root)
+    if not surface_specs:
+        return {}
+    results: dict[str, Any] = {}
+    for run in runs:
+        variant_name = str(run.get('variant_name', ''))
+        config_path = str(run.get('config_path', ''))
+        checkpoint_path = str(run.get('checkpoint_path', ''))
+        if not variant_name or not config_path or not checkpoint_path:
+            continue
+        variant_config = load_config(config_path)
+        variant_results: dict[str, Any] = {}
+        for surface in surface_specs:
+            evaluation = evaluate_main_model(
+                config=variant_config,
+                dataset_path=surface['dataset_path'],
+                checkpoint_path=checkpoint_path,
+                split=compare_split,
+                project_root=project_root,
+            )
+            variant_results[surface['name']] = {
+                'dataset_path': surface['dataset_path'],
+                'hidden_mae': hidden_mae_from_metrics(evaluation['metrics']),
+                'overall_mae': float(evaluation['metrics'].get('overall', {}).get('mae', 0.0)),
+                'metrics': evaluation['metrics'],
+                'kg_summary': evaluation.get('kg_summary', {}),
+            }
+        results[variant_name] = variant_results
+    return results
 
 
 def run_phase5_ablation_suite(
@@ -184,6 +261,7 @@ def run_phase6_ablation_suite(
         row['overall_mae'] = float(evaluation['metrics'].get('overall', {}).get('mae', 0.0))
         row['kg_enabled'] = bool(evaluation.get('kg_summary', {}).get('enabled', False))
         row['kg_rule_feature_count'] = int(evaluation.get('kg_summary', {}).get('rule_feature_count', 0))
+        row['relation_feature_count'] = int(evaluation.get('kg_summary', {}).get('active_relation_global_feature_count', 0)) + int(evaluation.get('kg_summary', {}).get('active_relation_node_feature_count', 0))
         rows.append(row)
         full_runs.append(
             {

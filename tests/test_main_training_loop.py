@@ -71,7 +71,6 @@ def test_broader_dataset_builds_temporal_examples_with_prefix_padding() -> None:
     assert len(examples[0].sequence_graph_ids) == 3
 
 
-
 def test_phase6_config_trains_with_kg_features_enabled(tmp_path: Path) -> None:
     phase6_config_path = ROOT / 'configs/phase6/phase6_dev.yaml'
     config = load_config(phase6_config_path)
@@ -88,3 +87,38 @@ def test_phase6_config_trains_with_kg_features_enabled(tmp_path: Path) -> None:
     assert Path(train_result.checkpoint_path).exists()
     assert train_result.kg_summary['enabled'] is True
     assert train_result.kg_summary['active_global_feature_count'] >= 1
+    assert train_result.kg_summary['feature_group_flags']['topology_context'] is True
+
+
+def test_phase6_rule_dense_activates_non_constant_rule_features(tmp_path: Path) -> None:
+    config = load_config(ROOT / 'configs/phase6/models/kg_default_full.yaml')
+    config['training']['epochs'] = 1
+    config['training']['batch_size'] = 1
+
+    train_result = train_main_model(
+        config=config,
+        dataset_path=BROAD_DATASET_PATH,
+        output_dir=tmp_path / 'phase6_rule_dense_train',
+        project_root=ROOT,
+    )
+    active_rule_features = list(train_result.kg_summary['rule_variance_summary']['active_rule_features'])
+    assert len(active_rule_features) >= 1
+
+
+def test_phase6_relation_light_activates_relation_features(tmp_path: Path) -> None:
+    config = load_config(ROOT / 'configs/phase6/models/relation_light_h64_lr1e3_g005_d00.yaml')
+    config['training']['epochs'] = 1
+    config['training']['batch_size'] = 1
+
+    train_result = train_main_model(
+        config=config,
+        dataset_path=BROAD_DATASET_PATH,
+        output_dir=tmp_path / 'phase6_relation_light_train',
+        project_root=ROOT,
+    )
+    assert train_result.kg_summary['configured_use_relation_light'] is True
+    relation_feature_total = (
+        int(train_result.kg_summary['active_relation_global_feature_count'])
+        + int(train_result.kg_summary['active_relation_node_feature_count'])
+    )
+    assert relation_feature_total >= 1

@@ -1,9 +1,13 @@
 {
+  "defaults": [
+    "schema_default.yaml"
+  ],
   "kg": {
     "enabled": true,
     "use_feature_enhancement": true,
     "use_relation_enhancement": false,
     "use_rule_layer": true,
+    "use_relation_light": false,
     "default_region_name": "default_region",
     "default_substation_name": "default_substation",
     "query_default_graph_id": "timeseries_matpower_case118_sample_20240101_000400"

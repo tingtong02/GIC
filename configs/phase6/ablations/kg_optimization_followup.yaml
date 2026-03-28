@@ -1,0 +1,48 @@
+{
+  "defaults": [
+    "../phase6_dev.yaml"
+  ],
+  "project": {
+    "profile": "phase6_optimization_followup"
+  },
+  "optimization": {
+    "primary_surface": "case118_graph_broader",
+    "compare_split": "test",
+    "current_default_variant": "feature_only",
+    "current_default_config_path": "configs/phase6/models/feature_only_full.yaml",
+    "current_default_hidden_mae": 5.947530508041382,
+    "risk_surface_degradation_tolerance": 0.15,
+    "risk_surface_failure_limit": 1,
+    "top_k": 3,
+    "variants": [
+      {
+        "name": "rule_dense_h128_lr1e3_g003_d00",
+        "config_path": "models/rule_dense_h128_lr1e3_g003_d00.yaml"
+      },
+      {
+        "name": "rule_dense_h128_lr5e4_g003_d00",
+        "config_path": "models/rule_dense_h128_lr5e4_g003_d00.yaml"
+      },
+      {
+        "name": "rule_dense_scenario_off_h96_lr1e3_g005_d00",
+        "config_path": "models/rule_dense_scenario_off_h96_lr1e3_g005_d00.yaml"
+      },
+      {
+        "name": "rule_dense_relation_light_h96_lr1e3_g003_d00",
+        "config_path": "models/rule_dense_relation_light_h96_lr1e3_g003_d00.yaml"
+      },
+      {
+        "name": "rule_dense_relation_light_h128_lr1e3_g003_d00",
+        "config_path": "models/rule_dense_relation_light_h128_lr1e3_g003_d00.yaml"
+      },
+      {
+        "name": "rule_dense_relation_light_scenario_off_h128_lr1e3_g003_d00",
+        "config_path": "models/rule_dense_relation_light_scenario_off_h128_lr1e3_g003_d00.yaml"
+      },
+      {
+        "name": "feature_only_plus_h128_lr1e3_g003_d00",
+        "config_path": "models/feature_only_plus_h128_lr1e3_g003_d00.yaml"
+      }
+    ]
+  }
+}

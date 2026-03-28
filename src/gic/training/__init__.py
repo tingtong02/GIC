@@ -1,4 +1,4 @@
-from gic.training.ablation import run_phase5_ablation_suite, run_phase6_ablation_suite
+from gic.training.ablation import evaluate_phase6_surface_runs, run_phase5_ablation_suite, run_phase6_ablation_suite
 from gic.training.checkpoint import load_checkpoint, save_checkpoint
 from gic.training.loops import (
     BaselineTrainingResult,
@@ -15,6 +15,7 @@ __all__ = [
     'evaluate_baseline_model',
     'evaluate_main_model',
     'evaluate_mlp_baseline',
+    'evaluate_phase6_surface_runs',
     'load_checkpoint',
     'run_phase5_ablation_suite',
     'run_phase6_ablation_suite',

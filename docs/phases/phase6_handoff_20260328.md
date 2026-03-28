@@ -218,3 +218,69 @@ As of 2026-03-28, Phase 6 is in a strong handoff state:
 
 This means the project can now move forward with a clear Phase 6 outcome:
 KG is no longer only an organizational layer; it is a controlled and beneficial model enhancement on the primary benchmark, with a well-defined current boundary.
+
+## 11. Post-Handoff Optimization Update (2026-03-28)
+
+After the first Phase 6 handoff, an additional Phase 6-only optimization pass was run under the same local-data boundary.
+This pass did not introduce real-event data and did not change the Phase 7 boundary.
+
+### 11.1 What was added in the optimization pass
+
+The follow-up Phase 6 work added:
+- multi-surface evaluation across `case118_graph_broader`, `s30`, `s70`, `s90`, `signal_off`, and `physics_off`
+- explicit KG feature-group controls for topology, scenario, and reliability contexts
+- denser rule-derived predictive features with non-zero-variance train-split activation
+- relation-light experimental support features and gated fusion controls
+- two GPU optimization matrices on the broader benchmark
+
+### 11.2 Optimization matrix outcomes
+
+First GPU optimization matrix report:
+- `reports/phase6_optimization_matrix_20260328T120044Z.json`
+- best candidate: `rule_dense_h96_lr1e3_g010_d00`
+- broader hidden-node MAE: `6.676966428756714`
+
+Second targeted GPU follow-up report:
+- `reports/phase6_optimization_matrix_20260328T120654Z.json`
+- best candidate: `rule_dense_relation_light_h96_lr1e3_g003_d00`
+- broader hidden-node MAE: `8.043440103530884`
+
+Frozen promotion threshold from the original Phase 6 default remains:
+- frozen `feature_only` broader hidden-node MAE: `5.947530508041382`
+
+Result:
+- no new candidate beat the frozen Phase 6 default
+- no candidate satisfied the broader-primary promotion rule
+- no candidate was promoted to a new default KG path
+
+### 11.3 What the optimization pass proved
+
+The optimization pass established three useful facts:
+- `rule_dense` is now a real predictive path rather than a purely explanatory one, because it activates non-zero-variance rule features on the current broader train split
+- `relation_light` is now a real model path with active relation-derived features, but it did not outperform the frozen default on the broader benchmark
+- multi-surface risk evaluation is now implemented and can be reused by later phases for controlled promotion decisions
+
+### 11.4 Current-code Phase 6 report status
+
+A standard Phase 6 report was rebuilt after the optimization pass:
+- `reports/phase_6_20260328T120834Z_684047f7/phase6_kg_report.json`
+- `reports/phase_6_20260328T120834Z_684047f7/phase6_kg_report.md`
+
+That current-code report recommends `no_kg` on the present experimental branch:
+- `no_kg`: `7.73746395111084`
+- `kg_default`: `13.818419694900513`
+- `feature_only`: `16.015687227249146`
+
+Interpretation:
+- the post-handoff experimental expansion did not produce a new stable default
+- the frozen historical Phase 6 `feature_only` result remains the reference default for controlled comparisons
+- the newly added optimization assets should currently be treated as experimental infrastructure and ablation paths, not as a promoted replacement baseline
+
+### 11.5 Default guidance after the optimization pass
+
+Until a later phase produces a clearly better result on the primary broader benchmark, keep using these references:
+- frozen non-KG control: Phase 5 broader default
+- frozen KG control: Phase 6 `feature_only` from the original accepted Phase 6 report
+
+Do not silently replace the frozen Phase 6 default with the post-handoff experimental branch just because more KG machinery now exists in the codebase.
+The broader-primary metric still controls default promotion, and that promotion did not happen in this optimization pass.

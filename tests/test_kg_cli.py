@@ -43,6 +43,11 @@ def test_kg_build_report_and_ablation_outputs_reports(capsys, tmp_path: Path) ->
     assert Path(report_payload['markdown_path']).exists()
     assert report_payload['recommended_variant'] in {'no_kg', 'feature_only', 'kg_default'}
 
+    report_json = json.loads(Path(report_payload['report_path']).read_text(encoding='utf-8'))
+    assert 'surface_results' in report_json
+    assert 'default_promotion_decision' in report_json
+    assert 'feature_only' in report_json['surface_results']
+
     ablation_exit = main(['kg-run-ablation', '--config', str(config_path), '--project-root', str(ROOT), '--dataset-path', str(DATASET_PATH)])
     ablation_captured = capsys.readouterr()
     ablation_payload = json.loads(ablation_captured.out)

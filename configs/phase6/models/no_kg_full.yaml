@@ -1,5 +1,7 @@
 {
-  "defaults": ["../phase6_dev.yaml"],
+  "defaults": [
+    "../phase6_dev.yaml"
+  ],
   "project": {
     "profile": "phase6_no_kg"
   },
@@ -11,6 +13,7 @@
   },
   "kg": {
     "use_feature_enhancement": false,
-    "use_rule_layer": false
+    "use_rule_layer": false,
+    "use_relation_light": false
   }
 }

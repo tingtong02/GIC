@@ -1,0 +1,19 @@
+{
+  "defaults": [
+    "rule_dense_base.yaml"
+  ],
+  "project": {
+    "profile": "phase6_rule_dense_h128_lr5e4_g003_d00"
+  },
+  "model": {
+    "hidden_dim": 128
+  },
+  "training": {
+    "lr": 0.0005
+  },
+  "fusion": {
+    "kg_gate_init": 0.03,
+    "relation_gate_init": 0.03,
+    "kg_dropout": 0.0
+  }
+}
