@@ -18,6 +18,8 @@ from gic.models.heads import HotspotHead, RegressionHead, RiskHead, UncertaintyH
 class MainModelInputBundle:
     sequence_node_features: torch.Tensor
     sequence_global_signal_features: torch.Tensor
+    sequence_node_kg_features: torch.Tensor
+    sequence_global_kg_features: torch.Tensor
     node_physics_features: torch.Tensor
     global_physics_features: torch.Tensor
     physics_quality_mask: torch.Tensor
@@ -32,6 +34,8 @@ class MainModelInputBundle:
         return MainModelInputBundle(
             sequence_node_features=self.sequence_node_features.to(device),
             sequence_global_signal_features=self.sequence_global_signal_features.to(device),
+            sequence_node_kg_features=self.sequence_node_kg_features.to(device),
+            sequence_global_kg_features=self.sequence_global_kg_features.to(device),
             node_physics_features=self.node_physics_features.to(device),
             global_physics_features=self.global_physics_features.to(device),
             physics_quality_mask=self.physics_quality_mask.to(device),
@@ -68,6 +72,8 @@ class Phase5MainModel(nn.Module):
         global_signal_dim: int = 0,
         node_physics_dim: int = 0,
         global_physics_dim: int = 0,
+        node_kg_dim: int = 0,
+        global_kg_dim: int = 0,
     ) -> None:
         super().__init__()
         model_cfg = dict(config.get('model', {}))
@@ -83,10 +89,13 @@ class Phase5MainModel(nn.Module):
         self.use_residual = bool(model_cfg.get('use_residual', True))
         self.use_signal_features = bool(model_cfg.get('use_signal_features', True))
         self.use_physics_features = bool(model_cfg.get('use_physics_features', True))
+        self.use_kg_features = bool(model_cfg.get('use_kg_features', False))
         self.input_encoder = InputEncoder(
             node_input_dim=node_input_dim,
             hidden_dim=self.hidden_dim,
             global_signal_dim=global_signal_dim if self.use_signal_features else 0,
+            node_kg_dim=node_kg_dim if self.use_kg_features else 0,
+            global_kg_dim=global_kg_dim if self.use_kg_features else 0,
             dropout=dropout,
         )
         self.temporal_encoder = TemporalEncoder(
@@ -135,6 +144,8 @@ class Phase5MainModel(nn.Module):
         encoded = self.input_encoder(
             batch.sequence_node_features,
             batch.sequence_global_signal_features if self.use_signal_features else None,
+            batch.sequence_node_kg_features if self.use_kg_features else None,
+            batch.sequence_global_kg_features if self.use_kg_features else None,
         )
         temporal_state = self.temporal_encoder(encoded)
         graph_state = self._apply_graph_backbone(temporal_state, batch.adjacency)
@@ -175,6 +186,8 @@ def build_main_model(
     global_signal_dim: int = 0,
     node_physics_dim: int = 0,
     global_physics_dim: int = 0,
+    node_kg_dim: int = 0,
+    global_kg_dim: int = 0,
 ) -> Phase5MainModel:
     resolved_node_input_dim = node_input_dim if node_input_dim is not None else input_dim
     if resolved_node_input_dim is None:
@@ -185,4 +198,6 @@ def build_main_model(
         global_signal_dim=global_signal_dim,
         node_physics_dim=node_physics_dim,
         global_physics_dim=global_physics_dim,
+        node_kg_dim=node_kg_dim,
+        global_kg_dim=global_kg_dim,
     )

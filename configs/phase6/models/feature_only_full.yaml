@@ -1,0 +1,16 @@
+{
+  "defaults": ["../phase6_dev.yaml"],
+  "project": {
+    "profile": "phase6_feature_only"
+  },
+  "model": {
+    "use_kg_features": true
+  },
+  "fusion": {
+    "inject_into_main_model": true
+  },
+  "kg": {
+    "use_feature_enhancement": true,
+    "use_rule_layer": false
+  }
+}

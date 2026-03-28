@@ -352,6 +352,7 @@ def build_kg_bundle(*, dataset_path: str | Path, project_root: Path, kg_config: 
         relations=relations,
         graph_samples=sources.graph_samples,
         rule_payload=rule_payload,
+        include_rule_features=bool(kg_config.get('use_rule_layer', True)),
     )
     return KGBuildResult(
         dataset_name=sources.dataset.dataset_name,

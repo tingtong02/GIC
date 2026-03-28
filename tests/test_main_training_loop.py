@@ -26,6 +26,8 @@ def test_train_and_evaluate_phase5_main_model_on_graph_ready_dataset(tmp_path: P
     assert train_result.validation_metrics['overall']['mae'] >= 0.0
     assert 'global_signal_features' in train_result.feature_summary
     assert 'global_physics_features' in train_result.feature_summary
+    assert 'global_kg_features' in train_result.feature_summary
+    assert 'node_kg_features' in train_result.feature_summary
 
     eval_result = evaluate_main_model(
         config=config,
@@ -67,3 +69,22 @@ def test_broader_dataset_builds_temporal_examples_with_prefix_padding() -> None:
     )
     assert len(examples) > 0
     assert len(examples[0].sequence_graph_ids) == 3
+
+
+
+def test_phase6_config_trains_with_kg_features_enabled(tmp_path: Path) -> None:
+    phase6_config_path = ROOT / 'configs/phase6/phase6_dev.yaml'
+    config = load_config(phase6_config_path)
+    config['training']['epochs'] = 1
+    config['training']['batch_size'] = 1
+    config['ablation']['training_epochs'] = 1
+
+    train_result = train_main_model(
+        config=config,
+        dataset_path=BROAD_DATASET_PATH,
+        output_dir=tmp_path / 'phase6_train_run',
+        project_root=ROOT,
+    )
+    assert Path(train_result.checkpoint_path).exists()
+    assert train_result.kg_summary['enabled'] is True
+    assert train_result.kg_summary['active_global_feature_count'] >= 1

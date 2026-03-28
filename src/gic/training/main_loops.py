@@ -75,6 +75,8 @@ class FeatureTransformBundle:
     global_signal_features: FeatureGroupTransform
     node_physics_features: FeatureGroupTransform
     global_physics_features: FeatureGroupTransform
+    node_kg_features: FeatureGroupTransform
+    global_kg_features: FeatureGroupTransform
 
     def combined_active_feature_names(self) -> list[str]:
         return [
@@ -82,6 +84,8 @@ class FeatureTransformBundle:
             *self.global_signal_features.active_names,
             *self.node_physics_features.active_names,
             *self.global_physics_features.active_names,
+            *self.node_kg_features.active_names,
+            *self.global_kg_features.active_names,
         ]
 
     def feature_summary(self) -> dict[str, Any]:
@@ -90,6 +94,8 @@ class FeatureTransformBundle:
             'global_signal_features': self.global_signal_features.summary(),
             'node_physics_features': self.node_physics_features.summary(),
             'global_physics_features': self.global_physics_features.summary(),
+            'node_kg_features': self.node_kg_features.summary(),
+            'global_kg_features': self.global_kg_features.summary(),
         }
 
     def model_input_dims(self) -> dict[str, int]:
@@ -98,6 +104,8 @@ class FeatureTransformBundle:
             'global_signal_dim': self.global_signal_features.dim,
             'node_physics_dim': self.node_physics_features.dim,
             'global_physics_dim': self.global_physics_features.dim,
+            'node_kg_dim': self.node_kg_features.dim,
+            'global_kg_dim': self.global_kg_features.dim,
         }
 
     def to_metadata(self) -> dict[str, Any]:
@@ -106,6 +114,8 @@ class FeatureTransformBundle:
             'global_signal_features': self.global_signal_features.to_metadata(),
             'node_physics_features': self.node_physics_features.to_metadata(),
             'global_physics_features': self.global_physics_features.to_metadata(),
+            'node_kg_features': self.node_kg_features.to_metadata(),
+            'global_kg_features': self.global_kg_features.to_metadata(),
         }
 
     @classmethod
@@ -115,6 +125,8 @@ class FeatureTransformBundle:
             global_signal_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_signal_features', {}))),
             node_physics_features=FeatureGroupTransform.from_metadata(dict(payload.get('node_physics_features', {}))),
             global_physics_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_physics_features', {}))),
+            node_kg_features=FeatureGroupTransform.from_metadata(dict(payload.get('node_kg_features', {}))),
+            global_kg_features=FeatureGroupTransform.from_metadata(dict(payload.get('global_kg_features', {}))),
         )
 
 
@@ -128,6 +140,7 @@ class MainModelTrainingResult:
     feature_names: list[str]
     feature_summary: dict[str, Any]
     signal_summary: dict[str, Any]
+    kg_summary: dict[str, Any]
     dataset_summary: dict[str, Any]
     model_input_dims: dict[str, int]
     train_example_count: int
@@ -204,6 +217,18 @@ def _flatten_global_physics_rows(examples: list[TemporalGraphSequenceExample]) -
     return _stack_feature_rows(rows, feature_count)
 
 
+def _flatten_sequence_node_kg_rows(examples: list[TemporalGraphSequenceExample]) -> torch.Tensor:
+    feature_count = len(examples[0].node_kg_feature_names) if examples else 0
+    rows = [row for item in examples for step in item.sequence_node_kg_features for row in step]
+    return _stack_feature_rows(rows, feature_count)
+
+
+def _flatten_sequence_global_kg_rows(examples: list[TemporalGraphSequenceExample]) -> torch.Tensor:
+    feature_count = len(examples[0].global_kg_feature_names) if examples else 0
+    rows = [row for item in examples for row in item.sequence_global_kg_features]
+    return _stack_feature_rows(rows, feature_count)
+
+
 def _build_feature_group_transform(
     *,
     group_name: str,
@@ -254,6 +279,7 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
     model_cfg = dict(config.get('model', {}))
     use_signal_features = bool(model_cfg.get('use_signal_features', True))
     use_physics_features = bool(model_cfg.get('use_physics_features', True))
+    use_kg_features = bool(model_cfg.get('use_kg_features', False))
     node_transform = _build_feature_group_transform(
         group_name='node_features',
         feature_names=list(examples[0].node_feature_names),
@@ -282,6 +308,20 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
         enabled=use_physics_features,
         drop_zero_variance=True,
     )
+    node_kg_transform = _build_feature_group_transform(
+        group_name='node_kg_features',
+        feature_names=list(examples[0].node_kg_feature_names),
+        values=_flatten_sequence_node_kg_rows(examples),
+        enabled=use_kg_features,
+        drop_zero_variance=True,
+    )
+    global_kg_transform = _build_feature_group_transform(
+        group_name='global_kg_features',
+        feature_names=list(examples[0].global_kg_feature_names),
+        values=_flatten_sequence_global_kg_rows(examples),
+        enabled=use_kg_features,
+        drop_zero_variance=True,
+    )
     if node_transform.dim == 0:
         raise ValueError('Phase 5 feature selection removed every node input feature')
     return FeatureTransformBundle(
@@ -289,6 +329,8 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
         global_signal_features=signal_transform,
         node_physics_features=node_physics_transform,
         global_physics_features=global_physics_transform,
+        node_kg_features=node_kg_transform,
+        global_kg_features=global_kg_transform,
     )
 
 
@@ -312,8 +354,12 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], transf
     signal_feature_count = len(items[0].global_signal_feature_names)
     node_physics_count = len(items[0].node_physics_feature_names)
     global_physics_count = len(items[0].global_physics_feature_names)
+    node_kg_count = len(items[0].node_kg_feature_names)
+    global_kg_count = len(items[0].global_kg_feature_names)
     sequence_node_tensor = torch.tensor([item.sequence_node_features for item in items], dtype=torch.float32)
     sequence_signal_tensor = torch.tensor([item.sequence_global_signal_features for item in items], dtype=torch.float32)
+    sequence_node_kg_tensor = torch.tensor([item.sequence_node_kg_features for item in items], dtype=torch.float32)
+    sequence_global_kg_tensor = torch.tensor([item.sequence_global_kg_features for item in items], dtype=torch.float32)
     node_physics_tensor = torch.tensor([item.node_physics_features for item in items], dtype=torch.float32)
     global_physics_tensor = torch.tensor([item.global_physics_features for item in items], dtype=torch.float32)
     hotspot_targets = None
@@ -323,6 +369,10 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], transf
         sequence_node_tensor = sequence_node_tensor.view(batch_size, step_count, node_count, node_feature_count)
     if sequence_signal_tensor.ndim == 2:
         sequence_signal_tensor = sequence_signal_tensor.view(batch_size, step_count, signal_feature_count)
+    if sequence_node_kg_tensor.ndim == 3:
+        sequence_node_kg_tensor = sequence_node_kg_tensor.view(batch_size, step_count, node_count, node_kg_count)
+    if sequence_global_kg_tensor.ndim == 2:
+        sequence_global_kg_tensor = sequence_global_kg_tensor.view(batch_size, step_count, global_kg_count)
     if node_physics_tensor.ndim == 2:
         node_physics_tensor = node_physics_tensor.view(batch_size, node_count, node_physics_count)
     if global_physics_tensor.ndim == 1:
@@ -330,6 +380,8 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], transf
     return MainModelInputBundle(
         sequence_node_features=_select_and_normalize(sequence_node_tensor, transforms.node_features),
         sequence_global_signal_features=_select_and_normalize(sequence_signal_tensor, transforms.global_signal_features),
+        sequence_node_kg_features=_select_and_normalize(sequence_node_kg_tensor, transforms.node_kg_features),
+        sequence_global_kg_features=_select_and_normalize(sequence_global_kg_tensor, transforms.global_kg_features),
         node_physics_features=_select_and_normalize(node_physics_tensor, transforms.node_physics_features),
         global_physics_features=_select_and_normalize(global_physics_tensor, transforms.global_physics_features),
         physics_quality_mask=torch.tensor([item.physics_quality_mask for item in items], dtype=torch.float32),
@@ -473,6 +525,46 @@ def _signal_summary(examples: list[TemporalGraphSequenceExample], transforms: Fe
     }
 
 
+def _kg_summary(transforms: FeatureTransformBundle, kg_feature_payload: dict[str, Any] | None, config: dict[str, Any]) -> dict[str, Any]:
+    model_cfg = dict(config.get('model', {}))
+    kg_cfg = dict(config.get('kg', {}))
+    return {
+        'enabled': bool(model_cfg.get('use_kg_features', False)) and bool(kg_feature_payload),
+        'configured_use_rule_layer': bool(kg_cfg.get('use_rule_layer', True)),
+        'active_global_feature_count': transforms.global_kg_features.dim,
+        'active_global_feature_names': list(transforms.global_kg_features.active_names),
+        'dropped_global_zero_variance': list(transforms.global_kg_features.dropped_zero_variance),
+        'active_node_feature_count': transforms.node_kg_features.dim,
+        'active_node_feature_names': list(transforms.node_kg_features.active_names),
+        'dropped_node_zero_variance': list(transforms.node_kg_features.dropped_zero_variance),
+        'graph_count': int(kg_feature_payload.get('graph_count', 0)) if kg_feature_payload else 0,
+        'rule_feature_count': sum(1 for name in transforms.global_kg_features.active_names if name.startswith('kg.rule.')),
+    }
+
+
+def _kg_model_enabled(config: dict[str, Any]) -> bool:
+    model_cfg = dict(config.get('model', {}))
+    fusion_cfg = dict(config.get('fusion', {}))
+    kg_cfg = dict(config.get('kg', {}))
+    return (
+        bool(kg_cfg.get('enabled', False))
+        and bool(kg_cfg.get('use_feature_enhancement', True))
+        and bool(fusion_cfg.get('inject_into_main_model', False))
+        and bool(model_cfg.get('use_kg_features', False))
+    )
+
+
+def _load_kg_feature_payload(config: dict[str, Any], *, dataset_path: str | Path, project_root: str | Path | None) -> dict[str, Any] | None:
+    if not _kg_model_enabled(config):
+        return None
+    from gic.kg.builder import build_kg_bundle
+
+    resolved_project_root = Path(project_root).resolve() if project_root is not None else Path.cwd().resolve()
+    kg_config = dict(config.get('kg', {}))
+    build_result = build_kg_bundle(dataset_path=dataset_path, project_root=resolved_project_root, kg_config=kg_config)
+    return dict(build_result.feature_payload)
+
+
 def _dataset_summary(dataset_path: str | Path) -> dict[str, Any]:
     dataset = GraphDataset.from_path(dataset_path)
     samples = dataset.load_samples()
@@ -501,6 +593,7 @@ def train_main_model(
     config: dict[str, Any],
     dataset_path: str | Path,
     output_dir: str | Path,
+    project_root: str | Path | None = None,
 ) -> MainModelTrainingResult:
     training_cfg = dict(config.get('training', {}))
     task_cfg = dict(config.get('task', {}))
@@ -517,9 +610,34 @@ def train_main_model(
 
     _set_seed(seed)
     dataset_path = str(Path(dataset_path).resolve())
-    train_examples = load_temporal_graph_examples(dataset_path, split='train', target_level=target_level, window_size=window_size, hotspot_quantile=hotspot_quantile, physics_feature_name=physics_feature_name)
-    val_examples = load_temporal_graph_examples(dataset_path, split='val', target_level=target_level, window_size=window_size, hotspot_quantile=hotspot_quantile, physics_feature_name=physics_feature_name)
-    test_examples = load_temporal_graph_examples(dataset_path, split='test', target_level=target_level, window_size=window_size, hotspot_quantile=hotspot_quantile, physics_feature_name=physics_feature_name)
+    kg_feature_payload = _load_kg_feature_payload(config, dataset_path=dataset_path, project_root=project_root)
+    train_examples = load_temporal_graph_examples(
+        dataset_path,
+        split='train',
+        target_level=target_level,
+        window_size=window_size,
+        hotspot_quantile=hotspot_quantile,
+        physics_feature_name=physics_feature_name,
+        kg_feature_payload=kg_feature_payload,
+    )
+    val_examples = load_temporal_graph_examples(
+        dataset_path,
+        split='val',
+        target_level=target_level,
+        window_size=window_size,
+        hotspot_quantile=hotspot_quantile,
+        physics_feature_name=physics_feature_name,
+        kg_feature_payload=kg_feature_payload,
+    )
+    test_examples = load_temporal_graph_examples(
+        dataset_path,
+        split='test',
+        target_level=target_level,
+        window_size=window_size,
+        hotspot_quantile=hotspot_quantile,
+        physics_feature_name=physics_feature_name,
+        kg_feature_payload=kg_feature_payload,
+    )
     if not train_examples:
         raise ValueError(f'Train split is empty for temporal examples: {dataset_path}')
     if not val_examples:
@@ -534,6 +652,8 @@ def train_main_model(
         global_signal_dim=input_dims['global_signal_dim'],
         node_physics_dim=input_dims['node_physics_dim'],
         global_physics_dim=input_dims['global_physics_dim'],
+        node_kg_dim=input_dims['node_kg_dim'],
+        global_kg_dim=input_dims['global_kg_dim'],
     )
     composer = LossComposer(config)
     device = _resolve_runtime_device(config)
@@ -552,6 +672,7 @@ def train_main_model(
 
     feature_summary = _feature_transform_summary(transforms)
     signal_summary = _signal_summary(train_examples, transforms)
+    kg_summary = _kg_summary(transforms, kg_feature_payload, config)
     dataset_summary = _dataset_summary(dataset_path)
 
     history: list[dict[str, Any]] = []
@@ -594,6 +715,7 @@ def train_main_model(
                     'feature_transforms': transforms.to_metadata(),
                     'feature_summary': feature_summary,
                     'signal_summary': signal_summary,
+                    'kg_summary': kg_summary,
                     'dataset_summary': dataset_summary,
                     'model_input_dims': input_dims,
                     'target_level': target_level,
@@ -624,6 +746,7 @@ def train_main_model(
         feature_names=active_feature_names,
         feature_summary=feature_summary,
         signal_summary=signal_summary,
+        kg_summary=kg_summary,
         dataset_summary=dataset_summary,
         model_input_dims=input_dims,
         train_example_count=len(train_examples),
@@ -651,6 +774,7 @@ def evaluate_main_model(
     dataset_path: str | Path,
     checkpoint_path: str | Path,
     split: str = 'test',
+    project_root: str | Path | None = None,
 ) -> dict[str, Any]:
     training_cfg = dict(config.get('training', {}))
     task_cfg = dict(config.get('task', {}))
@@ -663,6 +787,7 @@ def evaluate_main_model(
     physics_feature_name = str(temporal_cfg.get('physics_feature_name', 'physics.adjacent_induced_abs_sum'))
     hotspot_threshold = float(evaluation_cfg.get('hotspot_threshold', 0.5))
 
+    kg_feature_payload = _load_kg_feature_payload(config, dataset_path=dataset_path, project_root=project_root)
     examples = load_temporal_graph_examples(
         dataset_path,
         split=split,
@@ -670,6 +795,7 @@ def evaluate_main_model(
         window_size=window_size,
         hotspot_quantile=hotspot_quantile,
         physics_feature_name=physics_feature_name,
+        kg_feature_payload=kg_feature_payload,
     )
     if not examples:
         raise ValueError(f'Split {split} is empty for temporal examples: {dataset_path}')
@@ -685,6 +811,8 @@ def evaluate_main_model(
         global_signal_dim=input_dims['global_signal_dim'],
         node_physics_dim=input_dims['node_physics_dim'],
         global_physics_dim=input_dims['global_physics_dim'],
+        node_kg_dim=input_dims['node_kg_dim'],
+        global_kg_dim=input_dims['global_kg_dim'],
     )
     model.load_state_dict(checkpoint_payload['model_state'])
     device = _resolve_runtime_device(config)
@@ -702,6 +830,7 @@ def evaluate_main_model(
         'active_feature_names': transforms.combined_active_feature_names(),
         'feature_summary': checkpoint_metadata.get('feature_summary', transforms.feature_summary()),
         'signal_summary': checkpoint_metadata.get('signal_summary', _signal_summary(examples, transforms)),
+        'kg_summary': checkpoint_metadata.get('kg_summary', _kg_summary(transforms, kg_feature_payload, config)),
         'dataset_summary': checkpoint_metadata.get('dataset_summary', _dataset_summary(dataset_path)),
         'rows': rows,
         'metrics': metrics,

@@ -16,6 +16,7 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
             'physics_fusion': 'residual',
             'use_signal_features': True,
             'use_physics_features': True,
+            'use_kg_features': True,
             'use_residual': True,
         },
         'tasks': {
@@ -30,10 +31,14 @@ def test_phase5_main_model_forward_returns_regression_and_hotspot_outputs() -> N
         global_signal_dim=4,
         node_physics_dim=3,
         global_physics_dim=5,
+        node_kg_dim=2,
+        global_kg_dim=3,
     )
     batch = MainModelInputBundle(
         sequence_node_features=torch.randn(2, 3, 4, 6),
         sequence_global_signal_features=torch.randn(2, 3, 4),
+        sequence_node_kg_features=torch.randn(2, 3, 4, 2),
+        sequence_global_kg_features=torch.randn(2, 3, 3),
         node_physics_features=torch.randn(2, 4, 3),
         global_physics_features=torch.randn(2, 5),
         physics_quality_mask=torch.tensor([[1.0, 0.5, 1.0, 0.0], [1.0, 1.0, 0.5, 1.0]], dtype=torch.float32),

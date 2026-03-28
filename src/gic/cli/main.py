@@ -59,6 +59,7 @@ from gic.training import (
     evaluate_baseline_model,
     evaluate_main_model,
     run_phase5_ablation_suite,
+    run_phase6_ablation_suite,
     train_baseline_model,
     train_main_model,
 )
@@ -2087,13 +2088,15 @@ def _phase5_train_and_evaluate(
     dataset_path: str | Path,
     output_root: Path,
     split: str,
+    project_root: Path | None = None,
 ) -> dict[str, Any]:
-    train_result = train_main_model(config=config, dataset_path=dataset_path, output_dir=output_root)
+    train_result = train_main_model(config=config, dataset_path=dataset_path, output_dir=output_root, project_root=project_root)
     evaluation = evaluate_main_model(
         config=config,
         dataset_path=dataset_path,
         checkpoint_path=train_result.checkpoint_path,
         split=split,
+        project_root=project_root,
     )
     return {
         "training_result": train_result,
@@ -2116,7 +2119,7 @@ def cmd_train_main_model(args: argparse.Namespace) -> int:
         project_root=project_root,
     )
     logger = configure_logger("gic.phase5.train", config["logging"]["level"], context.log_file)
-    result = train_main_model(config=config, dataset_path=dataset_path, output_dir=context.artifact_dir)
+    result = train_main_model(config=config, dataset_path=dataset_path, output_dir=context.artifact_dir, project_root=project_root)
     metrics_report_path = write_json_report(
         {
             "validation_metrics": result.validation_metrics,
@@ -2129,6 +2132,7 @@ def cmd_train_main_model(args: argparse.Namespace) -> int:
             "feature_names": result.feature_names,
             "feature_summary": result.feature_summary,
             "signal_summary": result.signal_summary,
+            "kg_summary": result.kg_summary,
             "dataset_summary": result.dataset_summary,
             "train_example_count": result.train_example_count,
             "val_example_count": result.val_example_count,
@@ -2160,6 +2164,7 @@ def cmd_train_main_model(args: argparse.Namespace) -> int:
             "test_hotspot_metrics": result.test_hotspot_metrics,
             "feature_summary": result.feature_summary,
             "signal_summary": result.signal_summary,
+            "kg_summary": result.kg_summary,
             "dataset_summary": result.dataset_summary,
         }
     )
@@ -2184,7 +2189,7 @@ def cmd_eval_main_model(args: argparse.Namespace) -> int:
         project_root=project_root,
     )
     logger = configure_logger("gic.phase5.eval", config["logging"]["level"], context.log_file)
-    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split)
+    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split, project_root=project_root)
     predictions_path = write_json_report(payload["rows"], context.report_dir / f"phase5_{split}_predictions.json")
     metrics_path = write_json_report(payload["metrics"], context.report_dir / f"phase5_{split}_metrics.json")
     hotspot_path = write_json_report(payload["hotspot_metrics"], context.report_dir / f"phase5_{split}_hotspot_metrics.json")
@@ -2219,6 +2224,7 @@ def cmd_eval_main_model(args: argparse.Namespace) -> int:
             "hotspot_metrics": payload["hotspot_metrics"],
             "feature_summary": payload["feature_summary"],
             "signal_summary": payload["signal_summary"],
+            "kg_summary": payload.get("kg_summary", {}),
             "dataset_summary": payload["dataset_summary"],
         }
     )
@@ -2243,7 +2249,7 @@ def cmd_export_main_predictions(args: argparse.Namespace) -> int:
         project_root=project_root,
     )
     logger = configure_logger("gic.phase5.export", config["logging"]["level"], context.log_file)
-    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split)
+    payload = evaluate_main_model(config=config, dataset_path=dataset_path, checkpoint_path=checkpoint_path, split=split, project_root=project_root)
     predictions_path = write_json_report(payload["rows"], context.report_dir / f"phase5_{split}_predictions.json")
     write_summary(context, {"status": "ok", "predictions_path": str(predictions_path), "split": split})
     logger.info("Exported Phase 5 predictions for split %s", split)
@@ -2322,6 +2328,7 @@ def cmd_build_main_report(args: argparse.Namespace) -> int:
         dataset_path=dataset_path,
         output_root=ensure_directory(context.artifact_dir / "main_model_default"),
         split=compare_split,
+        project_root=project_root,
     )
     default_eval = default_run["evaluation"]
     predictions_path = write_json_report(default_eval["rows"], context.report_dir / f"phase5_{compare_split}_predictions.json")
@@ -2352,6 +2359,7 @@ def cmd_build_main_report(args: argparse.Namespace) -> int:
             "hotspot_metrics": default_eval["hotspot_metrics"],
             "feature_summary": default_eval["feature_summary"],
             "signal_summary": default_eval["signal_summary"],
+            "kg_summary": default_eval.get("kg_summary", {}),
             "predictions_path": str(predictions_path),
             "metrics_path": str(metrics_path),
             "hotspot_path": str(hotspot_path),
@@ -2511,35 +2519,40 @@ def cmd_kg_export_features(args: argparse.Namespace) -> int:
 def cmd_kg_run_ablation(args: argparse.Namespace) -> int:
     config, project_root = _load_phase6_context(args)
     dataset_path = _phase6_dataset_path(config, project_root, args.dataset_path)
-    variants = list(config.get("ablation", {}).get("variants", []))
     context, _ = initialize_run(
         config=config,
         config_path=str(Path(args.config).resolve()),
         command="kg-run-ablation",
         project_root=project_root,
     )
-    ablations: list[dict[str, Any]] = []
-    for variant in variants:
-        variant_name = str(variant.get("name", "unnamed"))
-        variant_config_path = _phase6_variant_config_path(args.config, str(variant.get("config_path", "")))
-        variant_payload = json.loads(Path(variant_config_path).read_text(encoding="utf-8"))
-        variant_kg_cfg = dict(config.get("kg", {}))
-        variant_kg_cfg.update(dict(variant_payload.get("kg", {})))
-        build_result = build_kg_bundle(dataset_path=dataset_path, project_root=project_root, kg_config=variant_kg_cfg)
-        ablations.append(
-            {
-                "name": variant_name,
-                "config_path": str(variant_config_path),
-                "entity_count": len(build_result.entities),
-                "relation_count": len(build_result.relations),
-                "global_feature_count": len(build_result.feature_payload.get("global_feature_names", [])) if bool(variant_kg_cfg.get("use_feature_enhancement", True)) else 0,
-                "node_feature_count": len(build_result.feature_payload.get("node_feature_names", [])) if bool(variant_kg_cfg.get("use_feature_enhancement", True)) else 0,
-                "rule_graph_count": build_result.rule_payload.get("graph_count", 0) if bool(variant_kg_cfg.get("use_rule_layer", True)) else 0,
-            }
-        )
-    report_path = write_json_report({"dataset_path": str(dataset_path), "ablations": ablations}, context.report_dir / "phase6_kg_ablation_report.json")
-    write_summary(context, {"status": "ok", "report_path": str(report_path), "ablation_count": len(ablations)})
-    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "ablation_count": len(ablations)})
+    compare_split = _phase5_compare_split(config)
+    payload = run_phase6_ablation_suite(
+        base_config=config,
+        base_config_path=str(Path(args.config).resolve()),
+        dataset_path=dataset_path,
+        output_root=context.artifact_dir / "ablations",
+        compare_split=compare_split,
+        project_root=project_root,
+    )
+    report_path = write_json_report(payload, context.report_dir / "phase6_kg_ablation_report.json")
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "report_path": str(report_path),
+            "ablation_count": len(payload["ablations"]),
+            "recommended_variant": payload.get("recommended_variant", "no_kg"),
+        },
+    )
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "report_path": str(report_path),
+            "ablation_count": len(payload["ablations"]),
+            "recommended_variant": payload.get("recommended_variant", "no_kg"),
+            "best_run": payload.get("best_run"),
+        }
+    )
     return 0
 
 
@@ -2566,6 +2579,16 @@ def cmd_kg_build_report(args: argparse.Namespace) -> int:
         feature_payload=build_result.feature_payload if bool(kg_cfg.get("use_feature_enhancement", True)) else None,
         rule_payload=build_result.rule_payload if bool(kg_cfg.get("use_rule_layer", True)) else None,
     )
+    compare_split = _phase5_compare_split(config)
+    ablation_payload = run_phase6_ablation_suite(
+        base_config=config,
+        base_config_path=str(Path(args.config).resolve()),
+        dataset_path=dataset_path,
+        output_root=context.artifact_dir / "ablations",
+        compare_split=compare_split,
+        project_root=project_root,
+    )
+    ablation_report_path = write_json_report(ablation_payload, context.report_dir / "phase6_model_ablation_report.json")
     query_ids = select_kg_query_examples(build_result.sample_index, top_k=int(evaluation_cfg.get("query_example_count", 3)))
     queries = [
         query_sample(
@@ -2585,12 +2608,29 @@ def cmd_kg_build_report(args: argparse.Namespace) -> int:
         rule_payload=build_result.rule_payload,
         query_examples=queries,
         phase5_report_path=str(evaluation_cfg.get("phase5_report_path", "")) if evaluation_cfg.get("compare_with_phase5_default", False) else None,
+        ablation_payload=ablation_payload,
     )
-    report_payload["paths"] = {**export_paths, "schema": schema_path}
+    report_payload["paths"] = {**export_paths, "schema": schema_path, "model_ablation": str(ablation_report_path)}
     report_path = write_json_report(report_payload, context.report_dir / "phase6_kg_report.json")
     markdown_path = write_markdown_report(build_kg_report_markdown(report_payload), context.report_dir / "phase6_kg_report.md")
-    write_summary(context, {"status": "ok", "report_path": str(report_path), "markdown_path": str(markdown_path)})
-    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "markdown_path": str(markdown_path), "query_example_count": len(queries)})
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "recommended_variant": report_payload.get("model_comparison", {}).get("recommended_variant", "no_kg"),
+        },
+    )
+    _serialize_result(
+        {
+            "run_id": context.run_id,
+            "report_path": str(report_path),
+            "markdown_path": str(markdown_path),
+            "query_example_count": len(queries),
+            "recommended_variant": report_payload.get("model_comparison", {}).get("recommended_variant", "no_kg"),
+        }
+    )
     return 0
 
 

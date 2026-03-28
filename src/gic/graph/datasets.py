@@ -85,8 +85,12 @@ class TemporalGraphSequenceExample:
     node_physics_feature_names: list[str] = field(default_factory=list)
     global_signal_feature_names: list[str] = field(default_factory=list)
     global_physics_feature_names: list[str] = field(default_factory=list)
+    node_kg_feature_names: list[str] = field(default_factory=list)
+    global_kg_feature_names: list[str] = field(default_factory=list)
     sequence_node_features: list[list[list[float]]] = field(default_factory=list)
     sequence_global_signal_features: list[list[float]] = field(default_factory=list)
+    sequence_node_kg_features: list[list[list[float]]] = field(default_factory=list)
+    sequence_global_kg_features: list[list[float]] = field(default_factory=list)
     node_physics_features: list[list[float]] = field(default_factory=list)
     global_physics_features: list[float] = field(default_factory=list)
     adjacency: list[list[float]] = field(default_factory=list)
@@ -264,6 +268,38 @@ def _sequence_values_for_indices(sequence_rows: list[list[float]], indices: list
 
 
 
+def _align_named_values(names: list[str], value_names: list[str], values: list[float]) -> list[float]:
+    if not names:
+        return []
+    lookup = {str(name): float(values[index]) for index, name in enumerate(value_names) if index < len(values)}
+    return [float(lookup.get(name, 0.0)) for name in names]
+
+
+
+def _kg_graph_feature_view(
+    graph_id: str,
+    *,
+    node_ids: list[str],
+    kg_feature_payload: dict[str, Any] | None,
+) -> tuple[list[str], list[str], list[float], dict[str, list[float]]]:
+    if not kg_feature_payload:
+        return [], [], [], {node_id: [] for node_id in node_ids}
+    global_feature_names = [str(item) for item in kg_feature_payload.get('global_feature_names', [])]
+    node_feature_names = [str(item) for item in kg_feature_payload.get('node_feature_names', [])]
+    graph_payload = dict(kg_feature_payload.get('graph_features', {}).get(graph_id, {}))
+    graph_global_names = [str(item) for item in graph_payload.get('global_feature_names', global_feature_names)]
+    graph_global_values = [float(item) for item in graph_payload.get('global_features', [])]
+    aligned_global_values = _align_named_values(global_feature_names, graph_global_names, graph_global_values)
+    graph_node_names = [str(item) for item in graph_payload.get('node_feature_names', node_feature_names)]
+    raw_node_features = dict(graph_payload.get('node_features', {}))
+    aligned_node_features: dict[str, list[float]] = {}
+    for node_id in node_ids:
+        raw_values = [float(item) for item in raw_node_features.get(node_id, [])]
+        aligned_node_features[node_id] = _align_named_values(node_feature_names, graph_node_names, raw_values)
+    return node_feature_names, global_feature_names, aligned_global_values, aligned_node_features
+
+
+
 def _physics_quality_mask(node_physics_features: list[list[float]], node_physics_feature_names: list[str]) -> list[float]:
     if not node_physics_features:
         return []
@@ -289,6 +325,7 @@ def build_temporal_graph_examples(
     window_size: int = 3,
     hotspot_quantile: float = 0.75,
     physics_feature_name: str = 'physics.adjacent_induced_abs_sum',
+    kg_feature_payload: dict[str, Any] | None = None,
 ) -> list[TemporalGraphSequenceExample]:
     if target_level != 'bus':
         raise NotImplementedError(f'Only bus-level temporal regression is implemented in the current Phase 5 pass: {target_level}')
@@ -314,7 +351,10 @@ def build_temporal_graph_examples(
                 window = [window[0]] * (window_size - len(window)) + window
             node_ids = [item.node_id for item in target_sample.node_records]
             all_feature_names = list(target_sample.feature_bundle.node_feature_names)
-            local_feature_indices = [index for index, name in enumerate(all_feature_names) if not name.startswith('signal.') and not name.startswith('physics.')]
+            local_feature_indices = [
+                index for index, name in enumerate(all_feature_names)
+                if not name.startswith('signal.') and not name.startswith('physics.')
+            ]
             node_physics_feature_indices = _prefix_indices(all_feature_names, 'physics.')
             node_feature_names = [all_feature_names[index] for index in local_feature_indices]
             node_physics_feature_names = [all_feature_names[index] for index in node_physics_feature_indices]
@@ -328,6 +368,11 @@ def build_temporal_graph_examples(
             global_physics_indices = _prefix_indices(global_feature_names, 'physics.global.')
             global_signal_feature_names = [global_feature_names[index] for index in global_signal_indices]
             global_physics_feature_names = [global_feature_names[index] for index in global_physics_indices]
+            target_node_kg_feature_names, target_global_kg_feature_names, target_global_kg_values, target_node_kg_values = _kg_graph_feature_view(
+                target_sample.graph_id,
+                node_ids=node_ids,
+                kg_feature_payload=kg_feature_payload,
+            )
             abs_targets = [abs(float(target_sample.label_bundle.node_targets[node_id])) for node_id in node_ids]
             hotspot_threshold = _quantile_threshold(abs_targets, hotspot_quantile)
             metadata: list[dict[str, Any]] = []
@@ -343,6 +388,16 @@ def build_temporal_graph_examples(
                 _feature_values_for_indices(target_sample.feature_bundle.node_features[node_id], node_physics_feature_indices)
                 for node_id in node_ids
             ]
+            sequence_node_kg_features: list[list[list[float]]] = []
+            sequence_global_kg_features: list[list[float]] = []
+            for sample in window:
+                _, _, step_global_kg_values, step_node_kg_values = _kg_graph_feature_view(
+                    sample.graph_id,
+                    node_ids=node_ids,
+                    kg_feature_payload=kg_feature_payload,
+                )
+                sequence_global_kg_features.append(step_global_kg_values)
+                sequence_node_kg_features.append([list(step_node_kg_values[node_id]) for node_id in node_ids])
             examples.append(
                 TemporalGraphSequenceExample(
                     target_graph_id=target_sample.graph_id,
@@ -352,6 +407,8 @@ def build_temporal_graph_examples(
                     node_physics_feature_names=node_physics_feature_names,
                     global_signal_feature_names=global_signal_feature_names,
                     global_physics_feature_names=global_physics_feature_names,
+                    node_kg_feature_names=target_node_kg_feature_names,
+                    global_kg_feature_names=target_global_kg_feature_names,
                     sequence_node_features=[
                         [_feature_values_for_indices(sample.feature_bundle.node_features[node_id], local_feature_indices) for node_id in node_ids]
                         for sample in window
@@ -360,6 +417,8 @@ def build_temporal_graph_examples(
                         _feature_values_for_indices(sample.feature_bundle.global_features, global_signal_indices)
                         for sample in window
                     ],
+                    sequence_node_kg_features=sequence_node_kg_features,
+                    sequence_global_kg_features=sequence_global_kg_features,
                     node_physics_features=node_physics_features,
                     global_physics_features=_feature_values_for_indices(target_sample.feature_bundle.global_features, global_physics_indices),
                     adjacency=_build_adjacency_matrix(target_sample),
@@ -396,6 +455,7 @@ def load_temporal_graph_examples(
     window_size: int = 3,
     hotspot_quantile: float = 0.75,
     physics_feature_name: str = 'physics.adjacent_induced_abs_sum',
+    kg_feature_payload: dict[str, Any] | None = None,
 ) -> list[TemporalGraphSequenceExample]:
     dataset = GraphDataset.from_path(dataset_path)
     return build_temporal_graph_examples(
@@ -405,6 +465,7 @@ def load_temporal_graph_examples(
         window_size=window_size,
         hotspot_quantile=hotspot_quantile,
         physics_feature_name=physics_feature_name,
+        kg_feature_payload=kg_feature_payload,
     )
 
 

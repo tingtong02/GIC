@@ -1,17 +1,18 @@
 {
   "ablation": {
+    "training_epochs": 120,
     "variants": [
       {
-        "name": "kg_default",
-        "config_path": "kg/kg_default.yaml"
+        "name": "no_kg",
+        "config_path": "models/no_kg_full.yaml"
       },
       {
         "name": "feature_only",
-        "config_path": "kg/feature_only.yaml"
+        "config_path": "models/feature_only_full.yaml"
       },
       {
-        "name": "rules_only",
-        "config_path": "kg/rules_only.yaml"
+        "name": "kg_default",
+        "config_path": "models/kg_default_full.yaml"
       }
     ]
   }

@@ -1,7 +1,6 @@
 {
   "defaults": [
-    "../base.yaml",
-    "../paths.yaml",
+    "../phase5/phase5_broader_benchmark.yaml",
     "kg/schema_default.yaml",
     "kg/kg_default.yaml",
     "ablations/kg_ablation.yaml"
@@ -12,20 +11,17 @@
   },
   "runtime": {
     "mode": "development",
-    "command": "kg-build-schema"
+    "command": "kg-build-report"
   },
-  "data": {
-    "registry_root": "data/registry"
-  },
-  "graph": {
-    "dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json"
+  "model": {
+    "use_kg_features": true
   },
   "kg": {
     "enabled": true,
     "output_root": "data/processed/kg"
   },
   "fusion": {
-    "inject_into_main_model": false,
+    "inject_into_main_model": true,
     "export_kg_features": true
   },
   "evaluation": {
