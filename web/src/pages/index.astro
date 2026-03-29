@@ -4,7 +4,17 @@ import { ScrollRevealSection } from '../components/animations/ScrollRevealSectio
 import { TradeoffToggle } from '../components/blocks/TradeoffToggle';
 import { LimitationWarning } from '../components/ui/LimitationWarning';
 import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
+import { KGNetworkChart } from '../components/blocks/KGNetworkChart';
 ---
+
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ 
+    startOnLoad: true, 
+    theme: 'base', 
+    themeVariables: { primaryColor: '#f8fafc', lineColor: '#94a3b8', primaryTextColor: '#0f172a' } 
+  });
+</script>
 
 <Layout title="GIC 网络级态势重建系统 | Research System Showcase">
   <main class="max-w-4xl mx-auto px-6 py-20 divide-y divide-slate-100">
@@ -42,6 +52,15 @@ import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
           </p>
         </div>
       </div>
+
+      <div class="mt-10 mb-8 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
+        <div class="p-4 border-b border-slate-200">
+          <h4 class="text-xs uppercase font-bold tracking-widest text-slate-500">Grid Topology Complexity</h4>
+        </div>
+        <div class="flex justify-center p-6 mix-blend-multiply">
+          <img src="/topology_glow.svg" alt="GIC grid topology with hub nodes" class="max-w-full h-auto drop-shadow-sm" />
+        </div>
+      </div>
       <div class="mt-8 bg-blue-50 border border-blue-100 rounded-lg p-6">
         <p class="text-sm font-semibold text-blue-900 mb-2">💡 破局策略 (Strategy):</p>
         <p class="text-sm text-blue-800 leading-relaxed">
@@ -52,6 +71,19 @@ import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
 
     <!-- 3 & 4. 技术总览与演进历程 -->
     <ScrollRevealSection id="blueprint" title="Phase 演进架构与模块大图" client:load>
+      
+      <!-- Mermaid Diagram -->
+      <div class="my-8">
+        <pre class="mermaid text-center bg-transparent" is:raw>
+flowchart LR
+    A[GIC Station<br/>Proxies] -->|FastICA| C(Residual Signal)
+    B[Grid Parameters<br/>Resistances] --> D{Physics Solver<br/>Prior Base}
+    C --> E[Temporal GNN<br/>GraphSAGE + GRU]
+    D --> E
+    E --> F((Phase 5<br/>Default Out))
+        </pre>
+      </div>
+
       <ul class="space-y-6 border-l-2 border-slate-200 ml-3 pl-6 mt-8">
         <li class="relative">
           <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-slate-300 border-2 border-white"></span>
@@ -100,6 +132,10 @@ import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
         }}
         client:load
       />
+
+      <!-- ECharts KG Interactive Chart -->
+      <KGNetworkChart client:only="react" />
+
     </ScrollRevealSection>
 
     <!-- 6. 结果与对比看板 -->
@@ -124,6 +160,16 @@ import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
         2. <strong>峰值延展误差：</strong> 在 Phase 7 的 Peak Timing Errors 的评估中出现了大区间偏移，应定性为 <strong>Failure Analysis Case</strong>，不可用于宣称“强预警”实战能力。<br/>
         3. <strong>KG 推理尚未形成主心骨：</strong> 复杂的规则约束（如串流阻断）暂未在评估中显化（Zero Variance 效应）。
       </LimitationWarning>
+
+      <!-- Failure Case Waveform -->
+      <div class="mt-10 mb-8 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
+        <div class="p-4 border-b border-slate-200">
+          <h4 class="text-xs uppercase font-bold tracking-widest text-slate-500">Real-event Residual Analysis (Failure Scenario)</h4>
+        </div>
+        <div class="flex justify-center p-6 mix-blend-multiply">
+          <img src="/residual_waveform.svg" alt="Residual failure waveform analysis" class="max-w-full h-auto drop-shadow-sm" />
+        </div>
+      </div>
 
       <div class="mt-12">
         <h4 class="text-sm uppercase tracking-wider font-bold text-slate-800 mb-4 border-b pb-2">Future Works (下一步建设蓝图)</h4>
