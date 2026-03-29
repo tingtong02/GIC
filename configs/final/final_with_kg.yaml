@@ -1,0 +1,9 @@
+{
+  "defaults": ["final_default.yaml"],
+  "project": {
+    "profile": "final_with_kg"
+  },
+  "final": {
+    "default_variant": "with_kg"
+  }
+}

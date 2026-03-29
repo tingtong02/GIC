@@ -1,0 +1,1794 @@
+{
+  "active_eval": {},
+  "asset_check": {
+    "phase4_checkpoint_path": true,
+    "phase4_report_path": true,
+    "phase5_checkpoint_path": true,
+    "phase5_config_path": true,
+    "phase5_report_path": true,
+    "phase6_checkpoint_path": true,
+    "phase6_config_path": true,
+    "phase6_report_path": true,
+    "phase7_config_path": true,
+    "phase7_report_path": true,
+    "synthetic_dataset_path": true
+  },
+  "default_model_id": "phase5_default",
+  "default_variant": "without_kg",
+  "frozen_versions": {
+    "assets": {
+      "phase4_checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+      "phase4_report_path": "/home/user/projects/GIC/reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json",
+      "phase5_checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+      "phase5_config_path": "/home/user/projects/GIC/configs/phase5/models/main_model_default_full.yaml",
+      "phase5_report_path": "/home/user/projects/GIC/reports/phase_5_20260328T031108Z_94664593/phase5_main_report.json",
+      "phase6_checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+      "phase6_config_path": "/home/user/projects/GIC/configs/phase6/models/feature_only_full.yaml",
+      "phase6_report_path": "/home/user/projects/GIC/reports/phase_6_20260328T111606Z_70f7f7a9/phase6_kg_ablation_report.json",
+      "phase7_config_path": "/home/user/projects/GIC/configs/phase7/phase7_dev.yaml",
+      "phase7_report_path": "/home/user/projects/GIC/reports/phase_7_20260329T075558Z_298a760a/phase7_real_event_report.json",
+      "synthetic_dataset_path": "/home/user/projects/GIC/data/processed/graph_ready/datasets/case118_graph_broader.json"
+    },
+    "default_variant": "without_kg",
+    "freeze": {
+      "data_version": "v1_default_graph_broader",
+      "graph_version": "v1_default_graph_phase5",
+      "kg_version": "v1_optional_kg_feature_only_phase6",
+      "main_model_version": "v1_default_main_model_phase5",
+      "physics_version": "v1_default_physics_phase5",
+      "real_eval_version": "v1_default_real_eval_phase7",
+      "signal_version": "v1_default_signal_phase5"
+    }
+  },
+  "kg_in_default": false,
+  "limitations": [
+    "Final default remains evidence-bounded and is not a production deployment claim.",
+    "Real-event validation still relies on station-local disturbance references rather than full-network truth.",
+    "KG remains available as an optional final variant even when it is not promoted to the default path."
+  ],
+  "markdown": "# Final System Summary\n\n## Default Path\n- Default variant: `without_kg`\n- KG in default: `False`\n- Default model id: `phase5_default`\n- Phase 7 promotion decision: `phase5_default_real_event_leader`\n\n## Synthetic Benchmark Summary\n- Dataset: `case118_graph_broader`\n- Phase 4 best hidden-node MAE: `21.214930`\n- Phase 4 graph hidden-node MAE: `22.175137`\n- Phase 5 default hidden-node MAE: `7.737464`\n- Phase 6 feature_only hidden-node MAE: `5.947531`\n\n## Real Event Summary\n- Event assets: `9`\n- Evaluation rows: `27`\n- Decision: `phase5_default_real_event_leader`\n- phase4_best_graph: mean proxy hidden MAE `1363.753755`, mean trend correlation `-0.722894`\n- phase5_default: mean proxy hidden MAE `85.786338`, mean trend correlation `-0.711156`\n- phase6_feature_only: mean proxy hidden MAE `77.114395`, mean trend correlation `-0.733496`\n\n## Limitations\n- Final default remains evidence-bounded and is not a production deployment claim.\n- Real-event validation still relies on station-local disturbance references rather than full-network truth.\n- KG remains available as an optional final variant even when it is not promoted to the default path.\n",
+  "phase5_report_path": "/home/user/projects/GIC/reports/phase_5_20260328T031108Z_94664593/phase5_main_report.json",
+  "phase6_report_path": "/home/user/projects/GIC/reports/phase_6_20260328T111606Z_70f7f7a9/phase6_kg_ablation_report.json",
+  "phase7_default_promotion_decision": "phase5_default_real_event_leader",
+  "phase7_failure_cases": [
+    {
+      "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+      "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+      "event_id": "storm_2020_sep01",
+      "evidence_level": 3,
+      "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+      "model_family": "phase4_baseline",
+      "model_id": "phase4_best_graph",
+      "peak_coincidence": false,
+      "peak_timing_error_minutes": 1752480.0,
+      "proxy_hidden_mae": 67.93099419134003,
+      "proxy_hidden_rmse": 88.14446680004262,
+      "ranking_correlation": -0.29999999999999993,
+      "row_count": 42,
+      "station_id": "OTT",
+      "trend_correlation": null
+    },
+    {
+      "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+      "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+      "event_id": "storm_2020_sep01",
+      "evidence_level": 3,
+      "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+      "model_family": "phase5_main",
+      "model_id": "phase5_default",
+      "peak_coincidence": false,
+      "peak_timing_error_minutes": 1752480.0,
+      "proxy_hidden_mae": 72.27168961507934,
+      "proxy_hidden_rmse": 116.47440475707666,
+      "ranking_correlation": -0.29999999999999993,
+      "row_count": 42,
+      "station_id": "OTT",
+      "trend_correlation": null
+    },
+    {
+      "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+      "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+      "event_id": "storm_2020_sep01",
+      "evidence_level": 3,
+      "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+      "model_family": "phase6_main",
+      "model_id": "phase6_feature_only",
+      "peak_coincidence": false,
+      "peak_timing_error_minutes": 1752480.0,
+      "proxy_hidden_mae": 54.526498241083964,
+      "proxy_hidden_rmse": 83.45613387214894,
+      "ranking_correlation": -0.29999999999999993,
+      "row_count": 42,
+      "station_id": "OTT",
+      "trend_correlation": null
+    },
+    {
+      "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+      "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+      "event_id": "storm_2020_sep01",
+      "evidence_level": 3,
+      "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_frd_2020_sep01_smoke_s70.json",
+      "model_family": "phase6_main",
+      "model_id": "phase6_feature_only",
+      "peak_coincidence": false,
+      "peak_timing_error_minutes": 1752476.0,
+      "proxy_hidden_mae": 88.40834382176399,
+      "proxy_hidden_rmse": 125.63595123134746,
+      "ranking_correlation": -0.3999999999999999,
+      "row_count": 42,
+      "station_id": "FRD",
+      "trend_correlation": -0.6854777756373103
+    },
+    {
+      "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+      "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+      "event_id": "storm_2020_sep01",
+      "evidence_level": 3,
+      "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_frd_2020_sep01_smoke_s70.json",
+      "model_family": "phase4_baseline",
+      "model_id": "phase4_best_graph",
+      "peak_coincidence": false,
+      "peak_timing_error_minutes": 1752476.0,
+      "proxy_hidden_mae": 813.2522894612381,
+      "proxy_hidden_rmse": 817.7779855712035,
+      "ranking_correlation": -0.5999999999999999,
+      "row_count": 42,
+      "station_id": "FRD",
+      "trend_correlation": -0.6710762469023662
+    }
+  ],
+  "phase7_generalization_summary": {
+    "group_counts": {
+      "boundary": 9,
+      "generalization": 9,
+      "main": 9,
+      "unassigned": 0
+    },
+    "grouped_metrics": {
+      "boundary": {
+        "mean_hidden_mae_proxy": 519.9237011652144,
+        "mean_peak_timing_error_minutes": 1664637.3333333333,
+        "mean_trend_correlation": -0.8153986252333704
+      },
+      "generalization": {
+        "mean_hidden_mae_proxy": 518.6454234804426,
+        "mean_peak_timing_error_minutes": 1709277.6666666667,
+        "mean_trend_correlation": -0.710745144252364
+      },
+      "main": {
+        "mean_hidden_mae_proxy": 488.0853635763364,
+        "mean_peak_timing_error_minutes": 1752477.3333333333,
+        "mean_trend_correlation": -0.6414025943716815
+      },
+      "unassigned": {
+        "mean_hidden_mae_proxy": null,
+        "mean_peak_timing_error_minutes": null,
+        "mean_trend_correlation": null
+      }
+    },
+    "rows": {
+      "boundary": [
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_bou_2020_nov01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 3030.1435932815075,
+          "proxy_hidden_rmse": 3031.3665759801083,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.7931760265315216
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_bou_2020_nov01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.7809483045653802
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_bou_2020_nov01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.3999999999999999,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.8079596253574338
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_frd_2020_nov01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 1092.536524538483,
+          "proxy_hidden_rmse": 1095.9368933705757,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.8370247648509563
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_frd_2020_nov01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.8277985095463363
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_frd_2020_nov01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664636.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.3999999999999999,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.8454845205485932
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_ott_2020_nov01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664640.0,
+          "proxy_hidden_mae": 67.93099419134003,
+          "proxy_hidden_rmse": 88.14446680004262,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_ott_2020_nov01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664640.0,
+          "proxy_hidden_mae": 72.27168961507934,
+          "proxy_hidden_rmse": 116.47440475707666,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+          "event_id": "storm_2020_nov01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_nov01/graph_ready/datasets/real_intermagnet_ott_2020_nov01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1664640.0,
+          "proxy_hidden_mae": 54.526498241083964,
+          "proxy_hidden_rmse": 83.45613387214894,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        }
+      ],
+      "generalization": [
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_bou_2020_oct01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709276.0,
+          "proxy_hidden_mae": 3018.2226250895433,
+          "proxy_hidden_rmse": 3019.450440580592,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.6935588498881585
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_bou_2020_oct01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709276.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.6870765299821916
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_bou_2020_oct01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709276.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.3999999999999999,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.7006699844202157
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_frd_2020_oct01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709277.0,
+          "proxy_hidden_mae": 1092.9529935675007,
+          "proxy_hidden_rmse": 1096.3520723549013,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.7326859612183129
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_frd_2020_oct01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709277.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.699877120727518
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_frd_2020_oct01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709277.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.5999999999999999,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.7506024192777873
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_ott_2020_oct01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709280.0,
+          "proxy_hidden_mae": 67.93099419134003,
+          "proxy_hidden_rmse": 88.14446680004262,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_ott_2020_oct01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709280.0,
+          "proxy_hidden_mae": 72.27168961507934,
+          "proxy_hidden_rmse": 116.47440475707666,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+          "event_id": "storm_2020_oct01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_oct01/graph_ready/datasets/real_intermagnet_ott_2020_oct01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1709280.0,
+          "proxy_hidden_mae": 54.526498241083964,
+          "proxy_hidden_rmse": 83.45613387214894,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        }
+      ],
+      "main": [
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_bou_2020_sep01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 3022.8827900588512,
+          "proxy_hidden_rmse": 3024.1087199502886,
+          "ranking_correlation": -0.4999999999999999,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.6098440264445762
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_bou_2020_sep01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.4999999999999999,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.6047436808952624
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_bou_2020_sep01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.6999999999999998,
+          "row_count": 42,
+          "station_id": "BOU",
+          "trend_correlation": -0.6107840583856843
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_frd_2020_sep01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 813.2522894612381,
+          "proxy_hidden_rmse": 817.7779855712035,
+          "ranking_correlation": -0.5999999999999999,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.6710762469023662
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_frd_2020_sep01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 92.543661487954,
+          "proxy_hidden_rmse": 130.58953657933833,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.6664897779648894
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_frd_2020_sep01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752476.0,
+          "proxy_hidden_mae": 88.40834382176399,
+          "proxy_hidden_rmse": 125.63595123134746,
+          "ranking_correlation": -0.3999999999999999,
+          "row_count": 42,
+          "station_id": "FRD",
+          "trend_correlation": -0.6854777756373103
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+          "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+          "model_family": "phase4_baseline",
+          "model_id": "phase4_best_graph",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752480.0,
+          "proxy_hidden_mae": 67.93099419134003,
+          "proxy_hidden_rmse": 88.14446680004262,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+          "model_family": "phase5_main",
+          "model_id": "phase5_default",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752480.0,
+          "proxy_hidden_mae": 72.27168961507934,
+          "proxy_hidden_rmse": 116.47440475707666,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        },
+        {
+          "checkpoint_path": "/home/user/projects/GIC/artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+          "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+          "event_id": "storm_2020_sep01",
+          "evidence_level": 3,
+          "graph_dataset_path": "/home/user/projects/GIC/data/processed/real_event/storm_2020_sep01/graph_ready/datasets/real_intermagnet_ott_2020_sep01_smoke_s70.json",
+          "model_family": "phase6_main",
+          "model_id": "phase6_feature_only",
+          "peak_coincidence": false,
+          "peak_timing_error_minutes": 1752480.0,
+          "proxy_hidden_mae": 54.526498241083964,
+          "proxy_hidden_rmse": 83.45613387214894,
+          "ranking_correlation": -0.29999999999999993,
+          "row_count": 42,
+          "station_id": "OTT",
+          "trend_correlation": null
+        }
+      ],
+      "unassigned": []
+    },
+    "split_config": {
+      "boundary_event_ids": [
+        "storm_2020_nov01"
+      ],
+      "generalization_event_ids": [
+        "storm_2020_oct01"
+      ],
+      "main_event_ids": [
+        "storm_2020_sep01"
+      ]
+    }
+  },
+  "phase7_report_path": "/home/user/projects/GIC/reports/phase_7_20260329T075558Z_298a760a/phase7_real_event_report.json",
+  "phase7_robustness_summary": {
+    "row_count": 135,
+    "rows": [
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 3022.8827900588512,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 3022.8827900588512,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 3627.459348070622,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 813.2522894612381,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 813.2522894612381,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 975.9027473534859,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752466.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752486.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 81.51719302960805,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752470.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752490.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 86.72602753809522,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752470.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752490.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 65.43179788930077,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1752470.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_sep01_smoke",
+        "event_id": "storm_2020_sep01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1752490.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 3018.2226250895433,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 3018.2226250895433,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 3621.8671501074523,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709266.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709286.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709266.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709286.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709266.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709286.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 1092.9529935675007,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 1092.9529935675007,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 1311.543592281001,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709267.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709287.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709267.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709287.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709267.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709287.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 81.51719302960805,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709270.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709290.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 86.72602753809522,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709270.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709290.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 65.43179788930077,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1709270.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_oct01_smoke",
+        "event_id": "storm_2020_oct01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1709290.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 3030.1435932815075,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 3030.1435932815075,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 3636.1723119378094,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_bou_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 1092.536524538483,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 1092.536524538483,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 1311.0438294461799,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 92.543661487954,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 111.05239378554481,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 88.40834382176399,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 106.09001258611681,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664626.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_frd_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664646.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 67.93099419134003,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 81.51719302960805,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664630.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase4_best_graph",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664650.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 72.27168961507934,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 86.72602753809522,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664630.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase5_default",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664650.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.3,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.7,
+        "proxy_hidden_mae_estimate": 54.526498241083964,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 0.9,
+        "proxy_hidden_mae_estimate": 65.43179788930077,
+        "scenario": "sensor_dropout"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": -10,
+        "peak_timing_error_estimate": 1664630.0,
+        "scenario": "timing_shift"
+      },
+      {
+        "dataset_name": "intermagnet_ott_2020_nov01_smoke",
+        "event_id": "storm_2020_nov01",
+        "model_id": "phase6_feature_only",
+        "parameter": 10,
+        "peak_timing_error_estimate": 1664650.0,
+        "scenario": "timing_shift"
+      }
+    ],
+    "scenario": {
+      "noise_stress_std": [
+        0.0,
+        0.5
+      ],
+      "sensor_dropout": [
+        0.3,
+        0.7,
+        0.9
+      ],
+      "timing_shift_minutes": [
+        -10,
+        10
+      ]
+    }
+  },
+  "real_event_summary": {
+    "decision": "phase5_default_real_event_leader",
+    "event_asset_count": 9,
+    "evidence_summary": {
+      "bundle_count": 3,
+      "descriptions": {
+        "level_1": "direct_device_measurement",
+        "level_2": "partial_local_measurement",
+        "level_3": "event_trend_peak_reference",
+        "level_4": "physical_plausibility_only"
+      },
+      "level_counts": {
+        "level_3": 3
+      }
+    },
+    "model_summary": {
+      "phase4_best_graph": {
+        "mean_peak_timing_error_minutes": 1708797.4444444445,
+        "mean_proxy_hidden_mae": 1363.7537553967938,
+        "mean_trend_correlation": -0.7228943126393154,
+        "row_count": 9
+      },
+      "phase5_default": {
+        "mean_peak_timing_error_minutes": 1708797.4444444445,
+        "mean_proxy_hidden_mae": 85.7863375303291,
+        "mean_trend_correlation": -0.7111556539469297,
+        "row_count": 9
+      },
+      "phase6_feature_only": {
+        "mean_peak_timing_error_minutes": 1708797.4444444445,
+        "mean_proxy_hidden_mae": 77.11439529487065,
+        "mean_trend_correlation": -0.7334963972711708,
+        "row_count": 9
+      }
+    },
+    "result_row_count": 27
+  },
+  "synthetic_summary": {
+    "dataset_name": "case118_graph_broader",
+    "phase4_best_hidden_mae": 21.21492975950241,
+    "phase4_graph_hidden_mae": 22.175137162208557,
+    "phase5_default_hidden_mae": 7.73746395111084,
+    "phase6_feature_only_hidden_mae": 5.947530508041382
+  }
+}

@@ -1,0 +1,53 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "../phase1/phase1_dev.yaml"
+  ],
+  "project": {
+    "name": "GIC",
+    "stage": "phase_8",
+    "profile": "final_default"
+  },
+  "runtime": {
+    "mode": "final",
+    "command": "run-final-default"
+  },
+  "final": {
+    "default_variant": "without_kg",
+    "refresh_real_eval": false,
+    "synthetic_split": "test",
+    "real_eval_split": "test",
+    "outputs": {
+      "subdir": "final_outputs",
+      "visuals_dirname": "visuals",
+      "casebook_json": "final_casebook.json",
+      "casebook_md": "final_casebook.md",
+      "summary_json": "final_summary.json",
+      "summary_md": "final_summary.md",
+      "doc_summary_md": "final_doc_summary.md"
+    },
+    "freeze": {
+      "data_version": "v1_default_graph_broader",
+      "physics_version": "v1_default_physics_phase5",
+      "signal_version": "v1_default_signal_phase5",
+      "graph_version": "v1_default_graph_phase5",
+      "main_model_version": "v1_default_main_model_phase5",
+      "kg_version": "v1_optional_kg_feature_only_phase6",
+      "real_eval_version": "v1_default_real_eval_phase7"
+    },
+    "assets": {
+      "synthetic_dataset_path": "data/processed/graph_ready/datasets/case118_graph_broader.json",
+      "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json",
+      "phase4_checkpoint_path": "artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+      "phase5_config_path": "configs/phase5/models/main_model_default_full.yaml",
+      "phase5_report_path": "reports/phase_5_20260328T031108Z_94664593/phase5_main_report.json",
+      "phase5_checkpoint_path": "artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+      "phase6_config_path": "configs/phase6/models/feature_only_full.yaml",
+      "phase6_report_path": "reports/phase_6_20260328T111606Z_70f7f7a9/phase6_kg_ablation_report.json",
+      "phase6_checkpoint_path": "artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+      "phase7_config_path": "configs/phase7/phase7_dev.yaml",
+      "phase7_report_path": "reports/phase_7_20260329T075558Z_298a760a/phase7_real_event_report.json"
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "defaults": ["final_default.yaml"],
+  "project": {
+    "profile": "final_reproduction"
+  },
+  "runtime": {
+    "command": "run-final-reproduction"
+  }
+}

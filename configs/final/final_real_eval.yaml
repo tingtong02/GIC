@@ -1,0 +1,12 @@
+{
+  "defaults": ["final_default.yaml"],
+  "project": {
+    "profile": "final_real_eval"
+  },
+  "runtime": {
+    "command": "run-final-real-eval"
+  },
+  "final": {
+    "refresh_real_eval": true
+  }
+}

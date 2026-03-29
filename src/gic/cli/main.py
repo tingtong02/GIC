@@ -61,6 +61,8 @@ from gic.eval.real_pipeline import (
     run_real_generalization,
     run_real_robustness,
 )
+from gic.pipelines import build_final_casebook, build_final_visuals, run_final_default, run_final_evaluation, run_final_pipeline, run_final_real_evaluation, run_final_reproduction
+from gic.reports import collect_final_versions, export_final_casebook, export_final_doc_summary, export_final_report_bundle
 from gic.eval.kg_case_studies import select_kg_query_examples
 from gic.eval.kg_reports import build_kg_report_markdown, build_kg_report_payload
 from gic.kg import build_kg_bundle, build_schema_definition, export_kg_bundle, export_schema, kg_to_dict, query_sample
@@ -84,6 +86,7 @@ DEFAULT_PHASE4_CONFIG = "configs/phase4/phase4_dev.yaml"
 DEFAULT_PHASE5_CONFIG = "configs/phase5/phase5_dev.yaml"
 DEFAULT_PHASE6_CONFIG = "configs/phase6/phase6_dev.yaml"
 DEFAULT_PHASE7_CONFIG = "configs/phase7/phase7_dev.yaml"
+DEFAULT_PHASE8_CONFIG = "configs/final/final_default.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -167,6 +170,19 @@ def _common_real_parser(parser: argparse.ArgumentParser) -> None:
         default=None,
         help="Optional project root override for Phase 7 real-event artifacts, manifests, and reports",
     )
+
+def _common_final_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE8_CONFIG, help="Path to the Phase 8 final config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for Phase 8 final outputs and report resolution",
+    )
+    kg_group = parser.add_mutually_exclusive_group()
+    kg_group.add_argument("--with-kg", action="store_true", help="Force the final KG-enhanced variant")
+    kg_group.add_argument("--without-kg", action="store_true", help="Force the final non-KG variant")
+    parser.add_argument("--check-only", action="store_true", help="Only validate frozen assets and skip active model evaluation")
+    parser.add_argument("--output-dir", default=None, help="Optional explicit output directory for Phase 8 exports")
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -349,6 +365,50 @@ def _build_parser() -> argparse.ArgumentParser:
     _common_real_parser(real_build_report)
     real_build_report.set_defaults(func=cmd_real_build_report)
 
+    run_pipeline_parser = subparsers.add_parser("run-pipeline", help="Run the Phase 8 final pipeline")
+    _common_final_parser(run_pipeline_parser)
+    run_pipeline_parser.set_defaults(func=cmd_run_pipeline)
+
+    run_reproduction_parser = subparsers.add_parser("run-reproduction", help="Run the Phase 8 reproduction pipeline")
+    _common_final_parser(run_reproduction_parser)
+    run_reproduction_parser.set_defaults(func=cmd_run_reproduction)
+
+    run_final_eval_parser = subparsers.add_parser("run-final-eval", help="Run the Phase 8 final evaluation pipeline")
+    _common_final_parser(run_final_eval_parser)
+    run_final_eval_parser.set_defaults(func=cmd_run_final_eval)
+
+    build_final_report_parser = subparsers.add_parser("build-final-report", help="Build the Phase 8 final summary report")
+    _common_final_parser(build_final_report_parser)
+    build_final_report_parser.set_defaults(func=cmd_build_final_report)
+
+    build_final_visuals_parser = subparsers.add_parser("build-final-visuals", help="Build the Phase 8 final visual bundle")
+    _common_final_parser(build_final_visuals_parser)
+    build_final_visuals_parser.set_defaults(func=cmd_build_final_visuals)
+
+    run_final_default_parser = subparsers.add_parser("run-final-default", help="Run the frozen Phase 8 default path")
+    _common_final_parser(run_final_default_parser)
+    run_final_default_parser.set_defaults(func=cmd_run_final_default)
+
+    run_final_reproduction_parser = subparsers.add_parser("run-final-reproduction", help="Run the frozen Phase 8 reproduction path")
+    _common_final_parser(run_final_reproduction_parser)
+    run_final_reproduction_parser.set_defaults(func=cmd_run_final_reproduction)
+
+    run_final_real_eval_parser = subparsers.add_parser("run-final-real-eval", help="Refresh and export the frozen Phase 8 real-eval summary")
+    _common_final_parser(run_final_real_eval_parser)
+    run_final_real_eval_parser.set_defaults(func=cmd_run_final_real_eval)
+
+    export_final_visuals_parser = subparsers.add_parser("export-final-visuals", help="Export the Phase 8 visual bundle")
+    _common_final_parser(export_final_visuals_parser)
+    export_final_visuals_parser.set_defaults(func=cmd_build_final_visuals)
+
+    export_final_casebook_parser = subparsers.add_parser("export-final-casebook", help="Export the Phase 8 casebook")
+    _common_final_parser(export_final_casebook_parser)
+    export_final_casebook_parser.set_defaults(func=cmd_export_final_casebook)
+
+    export_final_doc_summary_parser = subparsers.add_parser("export-final-doc-summary", help="Export the Phase 8 final doc summary")
+    _common_final_parser(export_final_doc_summary_parser)
+    export_final_doc_summary_parser.set_defaults(func=cmd_export_final_doc_summary)
+
     return parser
 
 
@@ -440,6 +500,17 @@ def _load_phase7_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
         raise ValueError("Phase 7 config requires data.registry_root")
     registry = RegistryStore(project_root=project_root, registry_root=registry_root)
     return config, project_root, registry
+
+def _load_phase8_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 8 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 8 config requires data.registry_root")
+    return config, project_root
 
 
 def _phase6_dataset_path(config: dict[str, Any], project_root: Path, dataset_override: str | None = None) -> Path:
@@ -2824,6 +2895,262 @@ def cmd_real_build_report(args: argparse.Namespace) -> int:
     write_summary(context, {"status": "ok", **export_paths, "decision": report.get("default_promotion_decision", "no_real_default_promotion")})
     logger.info("Built Phase 7 report with decision %s", report.get("default_promotion_decision", "no_real_default_promotion"))
     _serialize_result({"run_id": context.run_id, **export_paths, "decision": report.get("default_promotion_decision", "no_real_default_promotion")})
+    return 0
+
+
+def _phase8_variant_override(args: argparse.Namespace) -> bool | None:
+    if bool(getattr(args, 'with_kg', False)):
+        return True
+    if bool(getattr(args, 'without_kg', False)):
+        return False
+    return None
+
+
+def _phase8_output_root(context: Any, config: dict[str, Any], output_dir: str | None) -> Path:
+    if output_dir:
+        return Path(output_dir).resolve()
+    final_cfg = dict(config.get('final', {}))
+    outputs_cfg = dict(final_cfg.get('outputs', {}))
+    subdir = str(outputs_cfg.get('subdir', 'final_outputs'))
+    return ensure_directory(context.report_dir / subdir)
+
+
+def _phase8_load_report_dependencies(project_root: Path, config: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+    versions = collect_final_versions(project_root, config)
+    assets = dict(versions.get('assets', {}))
+    phase5_report = json.loads(Path(assets['phase5_report_path']).read_text(encoding='utf-8'))
+    phase6_report = json.loads(Path(assets['phase6_report_path']).read_text(encoding='utf-8'))
+    phase7_report = json.loads(Path(assets['phase7_report_path']).read_text(encoding='utf-8'))
+    return phase5_report, phase6_report, phase7_report
+
+
+def _phase8_doc_summary(report: dict[str, Any]) -> str:
+    return (
+        '# Final Doc Summary\n\n'
+        f"- Default variant: `{report.get('default_variant', '')}`\n"
+        f"- Default model id: `{report.get('default_model_id', '')}`\n"
+        f"- Phase 7 decision: `{report.get('phase7_default_promotion_decision', '')}`\n"
+    )
+
+
+def cmd_run_pipeline(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='run-pipeline',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.pipeline', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_pipeline(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        report_destination_root=output_root,
+    )
+    report['phase7_generalization_summary'] = json.loads(Path(report['phase7_report_path']).read_text(encoding='utf-8')).get('generalization_summary', {})
+    summary_paths = export_final_report_bundle(report, destination_root=output_root, summary_name='final_summary')
+    write_summary(context, {'status': 'ok', **summary_paths, 'default_variant': report.get('default_variant', '')})
+    logger.info('Built Phase 8 pipeline summary at %s', summary_paths['summary_json_path'])
+    _serialize_result({'run_id': context.run_id, **summary_paths, 'default_variant': report.get('default_variant', ''), 'default_model_id': report.get('default_model_id', '')})
+    return 0
+
+
+def cmd_run_reproduction(args: argparse.Namespace) -> int:
+    return cmd_run_final_reproduction(args)
+
+
+def cmd_run_final_eval(args: argparse.Namespace) -> int:
+    return cmd_build_final_report(args)
+
+
+def cmd_build_final_report(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='build-final-report',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.report', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_evaluation(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        report_destination_root=output_root,
+    )
+    phase5_report, phase6_report, phase7_report = _phase8_load_report_dependencies(project_root, config)
+    report['phase7_generalization_summary'] = phase7_report.get('generalization_summary', {})
+    report['phase7_failure_cases'] = phase7_report.get('failure_cases', [])
+    report['phase7_robustness_summary'] = phase7_report.get('robustness_summary', {})
+    summary_paths = export_final_report_bundle(report, destination_root=output_root, summary_name='final_summary')
+    write_summary(context, {'status': 'ok', **summary_paths, 'default_variant': report.get('default_variant', '')})
+    logger.info('Exported final report bundle to %s', summary_paths['summary_json_path'])
+    _serialize_result({'run_id': context.run_id, **summary_paths, 'default_variant': report.get('default_variant', ''), 'phase7_decision': report.get('phase7_default_promotion_decision', '')})
+    return 0
+
+
+def cmd_build_final_visuals(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='build-final-visuals',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.visuals', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_pipeline(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        report_destination_root=output_root,
+    )
+    _, phase6_report, phase7_report = _phase8_load_report_dependencies(project_root, config)
+    visual_paths = build_final_visuals(report, destination_root=ensure_directory(output_root / 'visuals'), phase6_report=phase6_report, phase7_report=phase7_report)
+    write_summary(context, {'status': 'ok', **visual_paths})
+    logger.info('Exported %d final visuals', len(visual_paths))
+    _serialize_result({'run_id': context.run_id, **visual_paths})
+    return 0
+
+
+def cmd_run_final_default(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='run-final-default',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.default', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    variant_override = _phase8_variant_override(args)
+    report = (
+        run_final_pipeline(
+            project_root=project_root,
+            config=config,
+            with_kg=variant_override,
+            check_only=bool(args.check_only),
+            report_destination_root=output_root,
+        )
+        if variant_override is not None
+        else run_final_default(
+            project_root=project_root,
+            config=config,
+            check_only=bool(args.check_only),
+            report_destination_root=output_root,
+        )
+    )
+    summary_paths = export_final_report_bundle(report, destination_root=output_root, summary_name='final_summary')
+    write_summary(context, {'status': 'ok', **summary_paths, 'default_variant': report.get('default_variant', '')})
+    logger.info('Ran final default path with variant %s', report.get('default_variant', ''))
+    _serialize_result({'run_id': context.run_id, **summary_paths, 'default_variant': report.get('default_variant', ''), 'default_model_id': report.get('default_model_id', '')})
+    return 0
+
+
+def cmd_run_final_reproduction(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='run-final-reproduction',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.reproduction', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    _, phase6_report, phase7_report = _phase8_load_report_dependencies(project_root, config)
+    payload = run_final_reproduction(
+        project_root=project_root,
+        config=config,
+        destination_root=output_root,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        phase6_report=phase6_report,
+        phase7_report=phase7_report,
+    )
+    write_summary(context, {'status': 'ok', **payload['summary_paths'], **payload['visual_paths'], **payload['casebook_paths'], 'doc_summary_path': payload['doc_summary_path']})
+    logger.info('Completed Phase 8 reproduction export to %s', output_root)
+    _serialize_result({'run_id': context.run_id, **payload['summary_paths'], **payload['visual_paths'], **payload['casebook_paths'], 'doc_summary_path': payload['doc_summary_path']})
+    return 0
+
+
+def cmd_run_final_real_eval(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='run-final-real-eval',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.real_eval', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_real_evaluation(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        report_destination_root=output_root,
+    )
+    summary_paths = export_final_report_bundle(report, destination_root=output_root, summary_name='final_real_eval_summary')
+    write_summary(context, {'status': 'ok', **summary_paths, 'phase7_decision': report.get('phase7_default_promotion_decision', '')})
+    logger.info('Refreshed final real-eval summary')
+    _serialize_result({'run_id': context.run_id, **summary_paths, 'phase7_decision': report.get('phase7_default_promotion_decision', '')})
+    return 0
+
+
+def cmd_export_final_casebook(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='export-final-casebook',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.casebook', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_pipeline(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=bool(args.check_only),
+        report_destination_root=output_root,
+    )
+    _, _, phase7_report = _phase8_load_report_dependencies(project_root, config)
+    report['phase7_failure_cases'] = phase7_report.get('failure_cases', [])
+    casebook = build_final_casebook(report)
+    casebook_paths = export_final_casebook(casebook, destination_root=output_root, json_name='final_casebook.json', md_name='final_casebook.md')
+    write_summary(context, {'status': 'ok', **casebook_paths})
+    logger.info('Exported final casebook')
+    _serialize_result({'run_id': context.run_id, **casebook_paths})
+    return 0
+
+
+def cmd_export_final_doc_summary(args: argparse.Namespace) -> int:
+    config, project_root = _load_phase8_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command='export-final-doc-summary',
+        project_root=project_root,
+    )
+    logger = configure_logger('gic.phase8.doc_summary', config['logging']['level'], context.log_file)
+    output_root = _phase8_output_root(context, config, args.output_dir)
+    report = run_final_pipeline(
+        project_root=project_root,
+        config=config,
+        with_kg=_phase8_variant_override(args),
+        check_only=True,
+        report_destination_root=output_root,
+    )
+    doc_summary_path = export_final_doc_summary(_phase8_doc_summary(report), destination_root=output_root, filename='final_doc_summary.md')
+    write_summary(context, {'status': 'ok', 'doc_summary_path': doc_summary_path})
+    logger.info('Exported final doc summary')
+    _serialize_result({'run_id': context.run_id, 'doc_summary_path': doc_summary_path})
     return 0
 
 
