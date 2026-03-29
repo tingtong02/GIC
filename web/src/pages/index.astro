@@ -1,0 +1,164 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { ScrollRevealSection } from '../components/animations/ScrollRevealSection';
+import { TradeoffToggle } from '../components/blocks/TradeoffToggle';
+import { LimitationWarning } from '../components/ui/LimitationWarning';
+import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
+---
+
+<Layout title="GIC 网络级态势重建系统 | Research System Showcase">
+  <main class="max-w-4xl mx-auto px-6 py-20 divide-y divide-slate-100">
+
+    <!-- 1. 项目总览 (Hero) -->
+    <ScrollRevealSection id="hero" client:load delay={0}>
+      <div class="mb-4">
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-slate-900 text-white tracking-widest uppercase mb-4">Phase 8 System Frozen</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 leading-[1.15] mb-6">
+        基于物理先验、图学习与知识增强的 <br/> <span class="text-blue-600">GIC 网络级态势重建系统</span>
+      </h1>
+      <p class="text-lg md:text-xl text-slate-600 font-light leading-relaxed mb-10 max-w-3xl">
+        本项目从 Phase 0 的骨架搭建演进至 Phase 8 的系统交付，旨在稀疏观测与长程噪声的复杂干扰下，借助物理代理基线、图神经网络传播以及可选的知识图谱机制，完成真实区域电网局域地磁感应电流的时空估计与残差重构。
+      </p>
+      
+      <LimitationWarning title="核心边界与证据保守性" level="caution" client:load>
+        目前真实事件（Real-event）的验证结果建立在保守的局站代理证据（Station-local disturbance proxies）基础上，未具备全网部署级的真值标定。<strong>切勿将 proxy 级相关性断言为生产环境下的全量时序精度。</strong>
+      </LimitationWarning>
+    </ScrollRevealSection>
+
+    <!-- 2. 问题背景与动机 -->
+    <ScrollRevealSection id="motivation" title="问题溯源：为什么要这么做？" client:load>
+      <div class="grid md:grid-cols-2 gap-10">
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 mb-3">稀疏观测与纯物理局限</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            广域电网中的 GIC 测点极其稀少，无法形成天然的全景监控。依靠纯物理的正演推算，受制于底层线缆材料、粗糙大地电导率的一级一级的误差累乘，往往使估算大幅飘移。
+          </p>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-slate-800 mb-3">纯黑箱学习的危险性</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            直接投喂至黑箱 Transformer 或 GNN 虽拟合强大，但真实地磁暴数据本质上具有高度非平稳和长尾分布特性。一旦遇上 Out-of-distribution 场景，无物理方程底座兜底的纯 AI 极容易输出天马行空的数值，造成次生系统决策灾难。
+          </p>
+        </div>
+      </div>
+      <div class="mt-8 bg-blue-50 border border-blue-100 rounded-lg p-6">
+        <p class="text-sm font-semibold text-blue-900 mb-2">💡 破局策略 (Strategy):</p>
+        <p class="text-sm text-blue-800 leading-relaxed">
+          保留简化的物理节点矩阵作为 Baseline / Prior 强制灌入模型，使用带有注意力机制的 GraphSAGE 处理局域拓扑耦合，并在最后一层融入具备逻辑规则的知识图谱。
+        </p>
+      </div>
+    </ScrollRevealSection>
+
+    <!-- 3 & 4. 技术总览与演进历程 -->
+    <ScrollRevealSection id="blueprint" title="Phase 演进架构与模块大图" client:load>
+      <ul class="space-y-6 border-l-2 border-slate-200 ml-3 pl-6 mt-8">
+        <li class="relative">
+          <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-slate-300 border-2 border-white"></span>
+          <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 1-3：数据、物理端与信号基底</h4>
+          <p class="text-sm text-slate-500">将电网抽象为节点，搭建了 Uniform Field 基线 Solver，并配置 FastICA 去除台站数据的低频长续漂移噪声。</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-slate-400 border-2 border-white"></span>
+          <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 4：基底与骨架摩擦 (Trial Error)</h4>
+          <p class="text-sm text-slate-500">初试了无时序的 GCN/GAT，发现单纯结构在稀疏环境下竟无法超越无结构的 MLP 基线。这个看似“失败”的对照组直接逼出了核心主线的诞生。</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-blue-600 border-2 border-blue-200"></span>
+          <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 5：系统定海神针 (Frozen Default)</h4>
+          <p class="text-sm text-slate-700 font-semibold mb-2">Temporal GNN + Physics Proxy Feature</p>
+          <p class="text-sm text-slate-500">将物理方程降维输出的 Baseline 列为先验特征灌注至模型，搭配 GraphSAGE+GRU 及热点分类监督流，彻底大比分赢下 Phase 4 并固化为默认流。</p>
+        </li>
+        <li class="relative">
+          <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-emerald-200"></span>
+          <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 6：知识图谱挂载 (KG Injection)</h4>
+          <p class="text-sm text-slate-500">提炼电站隶属、阻断规则与地理锚点形成 KG Schema。其 Features_Only 分支在合成测试集突破了 MAE 断崖新下限，但出于真实场景保守证据法，暂落为“可选增强流”。</p>
+        </li>
+      </ul>
+    </ScrollRevealSection>
+
+    <!-- 5. 架构与抉择 (Trade-offs) -->
+    <ScrollRevealSection id="architecture" title="核心工程抉择 (The Trade-offs)" client:load>
+      <p class="text-sm text-slate-600 mb-6 leading-relaxed">
+        系统并未因为 Phase 6 具有更好的理论上限而彻底淘汰 Phase 5。针对当前两种最前沿分支的工程取舍，我给出了明确的能力剥离说明：
+      </p>
+      
+      <TradeoffToggle 
+        defaultPath={{
+          id: 'phase5',
+          name: 'Phase 5: Physics-informed Temporal GNN',
+          pros: ['在 Real-event 下 Trend Correlation (-0.711) 表现更佳，容错高', '完全物理计算辅助定锚，泛化底座较稳'],
+          cons: ['受物理代理精度所限，局部数值未能压榨至极限', '未利用语义或隐式规则阻断进行知识梳理'],
+          maeScore: 7.73
+        }}
+        optionalPath={{
+          id: 'phase6',
+          name: 'Phase 6: KG Injection Feature-only',
+          pros: ['Synthetic Benchmark MAE(5.95) 达到了碾压所有基底的精确性', '为后续故障分析、规则打断点、语义问答埋入了实体库支持'],
+          cons: ['显式 Rule 在当前测试集陷入 Zero-variance', '无力支撑把它全盘宣称为无保留默认替换路线的论据'],
+          maeScore: 5.95
+        }}
+        client:load
+      />
+    </ScrollRevealSection>
+
+    <!-- 6. 结果与对比看板 -->
+    <ScrollRevealSection id="results" title="量化成果：Synthetic & Real-Event" client:load>
+      <MAEComparisonChart client:load />
+
+      <div class="mt-12 bg-white border border-slate-200 rounded p-6 shadow-sm">
+         <h4 class="text-sm font-bold tracking-tight mb-3">Real-Event Validation (Phase 7 事实)</h4>
+         <p class="text-sm text-slate-600 leading-relaxed mb-4">
+           基于 INTERMAGNET 等真实事件站点的 Proxy 数据走查结果表明，虽然 Proxy Hidden-node MAE 指标上 Phase 6 勉强维持优势（77.11 vs 85.78），但在更关键的时序趋势拟合 (Trend Correlation) 验证上，Phase 5 拿到了 -0.711，反超 Phase 6 (-0.733)。
+         </p>
+         <p class="text-sm text-slate-600 leading-relaxed font-semibold">
+           保守判决依据：由于 Trend Correlation (距离0越远越有显著线性趋势响应) 在长时段中反映抗噪性结构更加真实，架构最终决推 Phase 5 位列 Default。
+         </p>
+      </div>
+    </ScrollRevealSection>
+
+    <!-- 7 & 10. 证据边界与未来工作 -->
+    <ScrollRevealSection id="boundaries" title="底线：不可逾越的边界与后续展开" client:load>
+      <LimitationWarning title="必须澄清的能力宣誓禁区 (Red Lines)" level="critical" client:load>
+        1. <strong>非全景预测：</strong> 本系统的 Real-event 指标皆锚定站点波动残差，而非覆盖 100% 网络接地点真实分布。<br/>
+        2. <strong>峰值延展误差：</strong> 在 Phase 7 的 Peak Timing Errors 的评估中出现了大区间偏移，应定性为 <strong>Failure Analysis Case</strong>，不可用于宣称“强预警”实战能力。<br/>
+        3. <strong>KG 推理尚未形成主心骨：</strong> 复杂的规则约束（如串流阻断）暂未在评估中显化（Zero Variance 效应）。
+      </LimitationWarning>
+
+      <div class="mt-12">
+        <h4 class="text-sm uppercase tracking-wider font-bold text-slate-800 mb-4 border-b pb-2">Future Works (下一步建设蓝图)</h4>
+        <ul class="space-y-4">
+          <li class="flex items-start">
+            <span class="bg-slate-800 text-white rounded p-1 mr-3 mt-0.5"><div class="w-3 h-3 flex items-center justify-center text-[10px]">1</div></span>
+            <div>
+              <p class="text-sm font-bold text-slate-800">大幅扩充基于 2024 等特大磁暴案例源的 Real-event Repository</p>
+              <p class="text-xs text-slate-500 mt-1">突破 Benchmark size，用更多血肉去填补残差图学习的空隙，进而激发 KG 的复杂拓扑威力。</p>
+            </div>
+          </li>
+          <li class="flex items-start">
+            <span class="bg-slate-800 text-white rounded p-1 mr-3 mt-0.5"><div class="w-3 h-3 flex items-center justify-center text-[10px]">2</div></span>
+            <div>
+              <p class="text-sm font-bold text-slate-800">保持神圣的 Frozen 冻结线，切断污染</p>
+              <p class="text-xs text-slate-500 mt-1">后继的 Signal_on (FastICA 开启) 及 Residual 优化试验应立于崭新的 Branch。切勿为了微小指标扰动去修改被验证锁死的 Phase 5/6 Pipeline。</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </ScrollRevealSection>
+
+    <!-- 8 & 9. 工程仓库体系与复现入口 -->
+    <ScrollRevealSection id="engineering" title="代码资产与复现链路" client:load>
+      <div class="bg-slate-900 text-slate-300 font-mono text-sm p-6 rounded-lg overflow-x-auto">
+         <p class="text-green-400 mb-2"># 当前默认最终合成检验路径</p>
+         <p>PYTHONPATH=src conda run -n GIC_env python -m gic.cli.main run-final-default --config configs/final/final_default.yaml</p>
+         
+         <p class="text-green-400 mb-2 mt-6"># 真实验证集的评测刷新与输出</p>
+         <p>PYTHONPATH=src conda run -n GIC_env python -m gic.cli.main run-final-real-eval --config configs/final/final_real_eval.yaml</p>
+      </div>
+      <p class="text-sm text-slate-500 mt-4 leading-relaxed">
+        系统高度内聚，所有交付报表 (`summary`, `visuals`, `casebook`) 已集成在工程 CLI Pipeline。您可在 `/configs/final/` 获取基线冻结配置。
+      </p>
+    </ScrollRevealSection>
+
+  </main>
+</Layout>
