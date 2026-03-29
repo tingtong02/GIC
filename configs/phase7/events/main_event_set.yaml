@@ -1,0 +1,32 @@
+{
+  "event_set_name": "intermagnet_2020_main_event_set",
+  "notes": "Main Phase 7 real-event validation set based on Phase 3 fixed INTERMAGNET smoke windows.",
+  "events": [
+    {
+      "event_id": "storm_2020_sep01",
+      "event_name": "INTERMAGNET Storm Window 2020-09-01",
+      "time_range": "2020-09-01T00:00:00Z/2020-09-02T00:00:00Z",
+      "region": "north_america",
+      "status": "active",
+      "quality_notes": ["Phase 3 fixed smoke window", "No direct GIC truth available"],
+      "available_geomagnetic_inputs": [
+        "intermagnet_bou_2020_sep01_smoke",
+        "intermagnet_frd_2020_sep01_smoke",
+        "intermagnet_ott_2020_sep01_smoke"
+      ],
+      "available_geoelectric_inputs": [],
+      "available_gic_observations": [],
+      "data_sources": ["intermagnet_2020_smoke"],
+      "evidence": {
+        "available_truth_types": ["geomagnetic_station_series", "event_peak_timing", "event_trend_reference"],
+        "direct_measurements": [],
+        "indirect_references": ["station_magnetic_disturbance"],
+        "trend_reference": true,
+        "peak_reference": true,
+        "ranking_reference": true,
+        "limitations": ["No transformer-neutral GIC measurements", "Single-region proxy mapping to case118"],
+        "default_level": 3
+      }
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "defaults": [
+    "../base.yaml",
+    "../paths.yaml",
+    "../phase1/phase1_dev.yaml"
+  ],
+  "project": {
+    "name": "GIC",
+    "stage": "phase_7",
+    "profile": "phase7_dev"
+  },
+  "runtime": {
+    "mode": "development",
+    "command": "real-build-event-set"
+  },
+  "real_eval": {
+    "phase3_config": "configs/phase3/phase3_dev.yaml",
+    "phase2_config": "configs/phase2/phase2_dev.yaml",
+    "phase4_config": "configs/phase4/phase4_broader_benchmark.yaml",
+    "phase5_config": "configs/phase5/models/main_model_default_full.yaml",
+    "phase6_config": "configs/phase6/models/feature_only_full.yaml",
+    "event_set": "configs/phase7/events/main_event_set.yaml",
+    "generalization_set": "configs/phase7/events/generalization_set.yaml",
+    "evaluation": "configs/phase7/eval/real_eval_default.yaml",
+    "robustness": "configs/phase7/eval/robustness_eval.yaml",
+    "output_root": "data/processed/real_event",
+    "phase4_best_graph_checkpoint": "artifacts/runs/phase_4_20260327T140729Z_1355128f/baseline_models/gat/gat_best.pt",
+    "phase5_default_checkpoint": "artifacts/runs/phase_5_20260328T031108Z_94664593/main_model_default/phase5_main_best.pt",
+    "phase6_default_checkpoint": "artifacts/runs/phase_6_20260328T111606Z_70f7f7a9/ablations/feature_only/phase5_main_best.pt",
+    "phase4_report_path": "reports/phase_4_20260328T022351Z_94f5a566/phase4_baseline_report.json",
+    "phase5_report_path": "reports/phase_5_20260328T031108Z_94664593/phase5_main_report.json",
+    "phase6_report_path": "reports/phase_6_20260328T111606Z_70f7f7a9/phase6_kg_ablation_report.json",
+    "case_dataset": "matpower_case118_sample",
+    "signal_method": "raw_baseline",
+    "sparsity_rate": 0.7,
+    "mask_seed": 42,
+    "time_stride_minutes": 5,
+    "evidence": {
+      "min_level": 3,
+      "report_all_levels": true
+    }
+  }
+}

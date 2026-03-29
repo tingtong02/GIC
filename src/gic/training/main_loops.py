@@ -334,6 +334,44 @@ def _prepare_feature_transforms(examples: list[TemporalGraphSequenceExample], co
     )
 
 
+def _feature_name_alias_map(feature_names: list[str], current_feature_names: list[str]) -> dict[str, str]:
+    aliases: dict[str, str] = {}
+    current_set = set(current_feature_names)
+    replacements = {
+        'bx_nT': 'X',
+        'by_nT': 'Y',
+        'bz_nT': 'Z',
+    }
+    for name in feature_names:
+        alias = str(name)
+        for old, new in replacements.items():
+            alias = alias.replace(f'.{old}.', f'.{new}.')
+        if alias in current_set and alias != name:
+            aliases[str(name)] = alias
+    return aliases
+
+
+
+def _align_feature_tensor(values: torch.Tensor, current_feature_names: list[str], expected_feature_names: list[str]) -> torch.Tensor:
+    if not expected_feature_names or current_feature_names == expected_feature_names:
+        return values
+    aliases = _feature_name_alias_map(expected_feature_names, current_feature_names)
+    name_to_index = {name: index for index, name in enumerate(current_feature_names)}
+    aligned_columns: list[torch.Tensor] = []
+    for name in expected_feature_names:
+        index = name_to_index.get(name)
+        if index is None:
+            alias_name = aliases.get(name)
+            if alias_name is not None:
+                index = name_to_index.get(alias_name)
+        if index is None or index >= values.shape[-1]:
+            aligned_columns.append(values.new_zeros(*values.shape[:-1], 1))
+        else:
+            aligned_columns.append(values.select(-1, index).unsqueeze(-1))
+    return torch.cat(aligned_columns, dim=-1) if aligned_columns else values.new_zeros(*values.shape[:-1], 0)
+
+
+
 def _select_and_normalize(values: torch.Tensor, transform: FeatureGroupTransform) -> torch.Tensor:
     batch_shape = values.shape[:-1]
     if transform.dim == 0:
@@ -377,6 +415,12 @@ def _collate_temporal_examples(items: list[TemporalGraphSequenceExample], transf
         node_physics_tensor = node_physics_tensor.view(batch_size, node_count, node_physics_count)
     if global_physics_tensor.ndim == 1:
         global_physics_tensor = global_physics_tensor.view(batch_size, global_physics_count)
+    sequence_node_tensor = _align_feature_tensor(sequence_node_tensor, items[0].node_feature_names, transforms.node_features.feature_names)
+    sequence_signal_tensor = _align_feature_tensor(sequence_signal_tensor, items[0].global_signal_feature_names, transforms.global_signal_features.feature_names)
+    sequence_node_kg_tensor = _align_feature_tensor(sequence_node_kg_tensor, items[0].node_kg_feature_names, transforms.node_kg_features.feature_names)
+    sequence_global_kg_tensor = _align_feature_tensor(sequence_global_kg_tensor, items[0].global_kg_feature_names, transforms.global_kg_features.feature_names)
+    node_physics_tensor = _align_feature_tensor(node_physics_tensor, items[0].node_physics_feature_names, transforms.node_physics_features.feature_names)
+    global_physics_tensor = _align_feature_tensor(global_physics_tensor, items[0].global_physics_feature_names, transforms.global_physics_features.feature_names)
     return MainModelInputBundle(
         sequence_node_features=_select_and_normalize(sequence_node_tensor, transforms.node_features),
         sequence_global_signal_features=_select_and_normalize(sequence_signal_tensor, transforms.global_signal_features),
@@ -768,6 +812,17 @@ def _checkpoint_metadata(checkpoint_path: str | Path) -> dict[str, Any]:
     return dict(payload.get('metadata', {}))
 
 
+
+def _compat_main_model_state_dict(model_state: dict[str, Any]) -> dict[str, Any]:
+    state_dict = dict(model_state)
+    legacy_prefix = 'input_encoder.fusion.'
+    current_prefix = 'input_encoder.signal_fusion.'
+    legacy_keys = [key for key in state_dict if key.startswith(legacy_prefix)]
+    for key in legacy_keys:
+        state_dict[current_prefix + key[len(legacy_prefix):]] = state_dict.pop(key)
+    return state_dict
+
+
 def evaluate_main_model(
     *,
     config: dict[str, Any],
@@ -814,7 +869,7 @@ def evaluate_main_model(
         node_kg_dim=input_dims['node_kg_dim'],
         global_kg_dim=input_dims['global_kg_dim'],
     )
-    model.load_state_dict(checkpoint_payload['model_state'])
+    model.load_state_dict(_compat_main_model_state_dict(dict(checkpoint_payload['model_state'])))
     device = _resolve_runtime_device(config)
     model.to(device)
     loader = _build_loader(examples, batch_size=batch_size, shuffle=False, transforms=transforms)

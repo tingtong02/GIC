@@ -124,10 +124,29 @@ def _build_loader(examples: list[Any], batch_size: int, shuffle: bool, model_typ
 
 
 
-def _build_examples(dataset_path: str | Path, split: str, target_level: str, model_type: ModelType) -> list[Any]:
+def _build_examples(
+    dataset_path: str | Path,
+    split: str,
+    target_level: str,
+    model_type: ModelType,
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[Any]:
     if model_type == 'mlp':
-        return load_node_regression_examples(dataset_path, split=split, target_level=target_level)
-    return load_graph_regression_examples(dataset_path, split=split, target_level=target_level)
+        return load_node_regression_examples(
+            dataset_path,
+            split=split,
+            target_level=target_level,
+            feature_names=feature_names,
+            feature_aliases=feature_aliases,
+        )
+    return load_graph_regression_examples(
+        dataset_path,
+        split=split,
+        target_level=target_level,
+        feature_names=feature_names,
+        feature_aliases=feature_aliases,
+    )
 
 
 
@@ -309,12 +328,21 @@ def evaluate_baseline_model(
     dataset_path: str | Path,
     checkpoint_path: str | Path,
     split: str = 'test',
+    feature_names_override: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     training_cfg = dict(config.get('training', {}))
     task_cfg = dict(config.get('task', {}))
     target_level = str(task_cfg.get('target_level', 'bus'))
     batch_size = int(training_cfg.get('batch_size', 8))
-    examples = _build_examples(dataset_path, split, target_level, model_type)
+    examples = _build_examples(
+        dataset_path,
+        split,
+        target_level,
+        model_type,
+        feature_names=feature_names_override,
+        feature_aliases=feature_aliases,
+    )
     if not examples:
         raise ValueError(f'Split {split} is empty: {dataset_path}')
     first_example = examples[0]
@@ -333,7 +361,10 @@ def evaluate_baseline_model(
         'checkpoint_path': str(Path(checkpoint_path).resolve()),
         'split': split,
         'input_dim': input_dim,
+        'feature_names': list(feature_names_override or []),
         'metrics': metrics,
+        'row_count': int(metrics.get('row_count', 0)),
+        'hidden_row_count': int(metrics.get('hidden_row_count', 0)),
         'rows': rows,
         'reconstruction_maps': build_reconstruction_maps(rows),
     }

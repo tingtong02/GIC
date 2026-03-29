@@ -1,0 +1,20 @@
+{
+  "real_eval": {
+    "include_phase4_best_graph": true,
+    "include_phase5_default": true,
+    "include_phase6_kg_default": true,
+    "compare_split": "test",
+    "metrics": {
+      "proxy_numeric": true,
+      "trend": true,
+      "ranking": true,
+      "peak": true,
+      "uncertainty": false
+    },
+    "event_grouping": {
+      "main": ["storm_2020_sep01"],
+      "generalization": ["storm_2020_oct01"],
+      "boundary": ["storm_2020_nov01"]
+    }
+  }
+}

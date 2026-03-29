@@ -195,7 +195,41 @@ def _build_adjacency_matrix(sample: GraphSample, include_self_loops: bool = True
 
 
 
-def build_node_regression_examples(samples: list[GraphSample], target_level: str = 'bus') -> list[NodeRegressionExample]:
+def _aligned_node_feature_values(
+    sample: GraphSample,
+    node_id: str,
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[float]:
+    source_names = list(sample.feature_bundle.node_feature_names)
+    source_values = list(sample.feature_bundle.node_features[node_id])
+    if not feature_names:
+        return list(source_values)
+    name_to_index = {name: index for index, name in enumerate(source_names)}
+    aliases = dict(feature_aliases or {})
+    aligned: list[float] = []
+    for requested_name in feature_names:
+        candidate_names = [requested_name]
+        alias_name = aliases.get(requested_name)
+        if alias_name and alias_name not in candidate_names:
+            candidate_names.append(alias_name)
+        value = 0.0
+        for candidate_name in candidate_names:
+            index = name_to_index.get(candidate_name)
+            if index is not None and index < len(source_values):
+                value = float(source_values[index])
+                break
+        aligned.append(value)
+    return aligned
+
+
+
+def build_node_regression_examples(
+    samples: list[GraphSample],
+    target_level: str = 'bus',
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[NodeRegressionExample]:
     if target_level != 'bus':
         raise NotImplementedError(f'Only bus-level node regression is implemented in the current Phase 4 pass: {target_level}')
     examples: list[NodeRegressionExample] = []
@@ -206,7 +240,7 @@ def build_node_regression_examples(samples: list[GraphSample], target_level: str
                 NodeRegressionExample(
                     graph_id=sample.graph_id,
                     node_id=node_id,
-                    features=list(sample.feature_bundle.node_features[node_id]),
+                    features=_aligned_node_feature_values(sample, node_id, feature_names, feature_aliases),
                     target=float(sample.label_bundle.node_targets[node_id]),
                     observed=bool(sample.mask_bundle.observed_mask.get(node_id, False)),
                     metadata=_node_metadata(sample, node_id),
@@ -216,7 +250,12 @@ def build_node_regression_examples(samples: list[GraphSample], target_level: str
 
 
 
-def build_graph_regression_examples(samples: list[GraphSample], target_level: str = 'bus') -> list[GraphRegressionExample]:
+def build_graph_regression_examples(
+    samples: list[GraphSample],
+    target_level: str = 'bus',
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[GraphRegressionExample]:
     if target_level != 'bus':
         raise NotImplementedError(f'Only bus-level graph regression is implemented in the current Phase 4 pass: {target_level}')
     examples: list[GraphRegressionExample] = []
@@ -226,7 +265,7 @@ def build_graph_regression_examples(samples: list[GraphSample], target_level: st
             GraphRegressionExample(
                 graph_id=sample.graph_id,
                 node_ids=node_ids,
-                features=[list(sample.feature_bundle.node_features[node_id]) for node_id in node_ids],
+                features=[_aligned_node_feature_values(sample, node_id, feature_names, feature_aliases) for node_id in node_ids],
                 targets=[float(sample.label_bundle.node_targets[node_id]) for node_id in node_ids],
                 observed_mask=[bool(sample.mask_bundle.observed_mask.get(node_id, False)) for node_id in node_ids],
                 adjacency=_build_adjacency_matrix(sample),
@@ -435,15 +474,37 @@ def build_temporal_graph_examples(
 
 
 
-def load_node_regression_examples(dataset_path: str | Path, split: str | None = None, target_level: str = 'bus') -> list[NodeRegressionExample]:
+def load_node_regression_examples(
+    dataset_path: str | Path,
+    split: str | None = None,
+    target_level: str = 'bus',
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[NodeRegressionExample]:
     dataset = GraphDataset.from_path(dataset_path)
-    return build_node_regression_examples(dataset.load_samples(split=split), target_level=target_level)
+    return build_node_regression_examples(
+        dataset.load_samples(split=split),
+        target_level=target_level,
+        feature_names=feature_names,
+        feature_aliases=feature_aliases,
+    )
 
 
 
-def load_graph_regression_examples(dataset_path: str | Path, split: str | None = None, target_level: str = 'bus') -> list[GraphRegressionExample]:
+def load_graph_regression_examples(
+    dataset_path: str | Path,
+    split: str | None = None,
+    target_level: str = 'bus',
+    feature_names: list[str] | None = None,
+    feature_aliases: dict[str, str] | None = None,
+) -> list[GraphRegressionExample]:
     dataset = GraphDataset.from_path(dataset_path)
-    return build_graph_regression_examples(dataset.load_samples(split=split), target_level=target_level)
+    return build_graph_regression_examples(
+        dataset.load_samples(split=split),
+        target_level=target_level,
+        feature_names=feature_names,
+        feature_aliases=feature_aliases,
+    )
 
 
 

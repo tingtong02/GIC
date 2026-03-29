@@ -52,6 +52,15 @@ from gic.eval import (
     write_json_report,
     write_markdown_report,
 )
+from gic.eval.real_pipeline import (
+    build_real_event_report,
+    build_real_event_set,
+    build_real_failure_cases,
+    export_real_event_report,
+    run_real_event_eval,
+    run_real_generalization,
+    run_real_robustness,
+)
 from gic.eval.kg_case_studies import select_kg_query_examples
 from gic.eval.kg_reports import build_kg_report_markdown, build_kg_report_payload
 from gic.kg import build_kg_bundle, build_schema_definition, export_kg_bundle, export_schema, kg_to_dict, query_sample
@@ -74,6 +83,7 @@ DEFAULT_PHASE3_CONFIG = "configs/phase3/phase3_dev.yaml"
 DEFAULT_PHASE4_CONFIG = "configs/phase4/phase4_dev.yaml"
 DEFAULT_PHASE5_CONFIG = "configs/phase5/phase5_dev.yaml"
 DEFAULT_PHASE6_CONFIG = "configs/phase6/phase6_dev.yaml"
+DEFAULT_PHASE7_CONFIG = "configs/phase7/phase7_dev.yaml"
 
 
 def _common_run_parser(parser: argparse.ArgumentParser) -> None:
@@ -148,6 +158,15 @@ def _common_kg_parser(parser: argparse.ArgumentParser) -> None:
         help="Optional project root override for Phase 6 KG artifacts, reports, and dataset resolution",
     )
     parser.add_argument("--dataset-path", default=None, help="Optional graph-ready dataset override for Phase 6 KG building")
+
+
+def _common_real_parser(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("--config", default=DEFAULT_PHASE7_CONFIG, help="Path to the Phase 7 config file")
+    parser.add_argument(
+        "--project-root",
+        default=None,
+        help="Optional project root override for Phase 7 real-event artifacts, manifests, and reports",
+    )
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -306,6 +325,30 @@ def _build_parser() -> argparse.ArgumentParser:
     kg_query_sample.add_argument("--identifier", default=None, help="Graph id or sample id to query")
     kg_query_sample.set_defaults(func=cmd_kg_query_sample)
 
+    real_build_event_set = subparsers.add_parser("real-build-event-set", help="Build the Phase 7 real-event manifest and derived assets")
+    _common_real_parser(real_build_event_set)
+    real_build_event_set.set_defaults(func=cmd_real_build_event_set)
+
+    real_run_eval = subparsers.add_parser("real-run-eval", help="Run Phase 7 real-event evaluation across frozen model families")
+    _common_real_parser(real_run_eval)
+    real_run_eval.set_defaults(func=cmd_real_run_eval)
+
+    real_run_generalization = subparsers.add_parser("real-run-generalization", help="Build Phase 7 grouped generalization summary")
+    _common_real_parser(real_run_generalization)
+    real_run_generalization.set_defaults(func=cmd_real_run_generalization)
+
+    real_run_robustness = subparsers.add_parser("real-run-robustness", help="Build Phase 7 robustness summary")
+    _common_real_parser(real_run_robustness)
+    real_run_robustness.set_defaults(func=cmd_real_run_robustness)
+
+    real_build_case_studies = subparsers.add_parser("real-build-case-studies", help="Export Phase 7 failure cases and case studies")
+    _common_real_parser(real_build_case_studies)
+    real_build_case_studies.set_defaults(func=cmd_real_build_case_studies)
+
+    real_build_report = subparsers.add_parser("real-build-report", help="Build the Phase 7 real-event validation report")
+    _common_real_parser(real_build_report)
+    real_build_report.set_defaults(func=cmd_real_build_report)
+
     return parser
 
 
@@ -385,6 +428,18 @@ def _load_phase6_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path
     if not isinstance(registry_root, str) or not registry_root:
         raise ValueError("Phase 6 config requires data.registry_root")
     return config, project_root
+
+def _load_phase7_context(args: argparse.Namespace) -> tuple[dict[str, Any], Path, RegistryStore]:
+    config = load_config(args.config)
+    project_root = resolve_project_root(args.project_root)
+    data_cfg = config.get("data")
+    if not isinstance(data_cfg, dict):
+        raise ValueError("Phase 7 config requires a data section")
+    registry_root = data_cfg.get("registry_root")
+    if not isinstance(registry_root, str) or not registry_root:
+        raise ValueError("Phase 7 config requires data.registry_root")
+    registry = RegistryStore(project_root=project_root, registry_root=registry_root)
+    return config, project_root, registry
 
 
 def _phase6_dataset_path(config: dict[str, Any], project_root: Path, dataset_override: str | None = None) -> Path:
@@ -2649,6 +2704,126 @@ def cmd_kg_query_sample(args: argparse.Namespace) -> int:
         rule_payload=build_result.rule_payload,
     )
     _serialize_result(payload)
+    return 0
+
+
+def cmd_real_build_event_set(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-build-event-set",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.event_set", config["logging"]["level"], context.log_file)
+    build_result = build_real_event_set(project_root=project_root, registry=registry, config=config)
+    manifest_path = project_root / str(config["real_eval"].get("output_root", "data/processed/real_event")) / "real_event_manifest.json"
+    write_summary(
+        context,
+        {
+            "status": "ok",
+            "event_set_name": build_result.dataset.event_set_name,
+            "record_count": len(build_result.dataset.records),
+            "asset_count": len(build_result.assets),
+            "manifest_path": str(manifest_path.resolve()),
+        },
+    )
+    logger.info("Built Phase 7 real-event set with %d assets", len(build_result.assets))
+    _serialize_result({
+        "run_id": context.run_id,
+        "event_set_name": build_result.dataset.event_set_name,
+        "record_count": len(build_result.dataset.records),
+        "asset_count": len(build_result.assets),
+        "manifest_path": str(manifest_path.resolve()),
+    })
+    return 0
+
+
+def cmd_real_run_eval(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-run-eval",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.eval", config["logging"]["level"], context.log_file)
+    payload = run_real_event_eval(project_root=project_root, registry=registry, config=config)
+    report_path = write_json_report(payload, context.report_dir / "phase7_real_eval.json")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "row_count": payload.get("result_row_count", 0)})
+    logger.info("Built Phase 7 real-event evaluation rows: %d", payload.get("result_row_count", 0))
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "row_count": payload.get("result_row_count", 0)})
+    return 0
+
+
+def cmd_real_run_generalization(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-run-generalization",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.generalization", config["logging"]["level"], context.log_file)
+    eval_payload = run_real_event_eval(project_root=project_root, registry=registry, config=config)
+    payload = run_real_generalization(eval_payload, config)
+    report_path = write_json_report(payload, context.report_dir / "phase7_generalization.json")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "group_counts": payload.get("group_counts", {})})
+    logger.info("Built Phase 7 generalization summary")
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "group_counts": payload.get("group_counts", {})})
+    return 0
+
+
+def cmd_real_run_robustness(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-run-robustness",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.robustness", config["logging"]["level"], context.log_file)
+    eval_payload = run_real_event_eval(project_root=project_root, registry=registry, config=config)
+    payload = run_real_robustness(eval_payload, config)
+    report_path = write_json_report(payload, context.report_dir / "phase7_robustness.json")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "row_count": payload.get("row_count", 0)})
+    logger.info("Built Phase 7 robustness summary")
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "row_count": payload.get("row_count", 0)})
+    return 0
+
+
+def cmd_real_build_case_studies(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-build-case-studies",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.case_studies", config["logging"]["level"], context.log_file)
+    eval_payload = run_real_event_eval(project_root=project_root, registry=registry, config=config)
+    payload = build_real_failure_cases(eval_payload)
+    report_path = write_json_report(payload, context.report_dir / "phase7_case_studies.json")
+    write_summary(context, {"status": "ok", "report_path": str(report_path), "case_count": len(payload)})
+    logger.info("Built Phase 7 failure case export")
+    _serialize_result({"run_id": context.run_id, "report_path": str(report_path), "case_count": len(payload)})
+    return 0
+
+
+def cmd_real_build_report(args: argparse.Namespace) -> int:
+    config, project_root, registry = _load_phase7_context(args)
+    context, _ = initialize_run(
+        config=config,
+        config_path=str(Path(args.config).resolve()),
+        command="real-build-report",
+        project_root=project_root,
+    )
+    logger = configure_logger("gic.phase7.report", config["logging"]["level"], context.log_file)
+    report = build_real_event_report(project_root=project_root, registry=registry, config=config)
+    export_paths = export_real_event_report(project_root, config, report, context.report_dir)
+    write_summary(context, {"status": "ok", **export_paths, "decision": report.get("default_promotion_decision", "no_real_default_promotion")})
+    logger.info("Built Phase 7 report with decision %s", report.get("default_promotion_decision", "no_real_default_promotion"))
+    _serialize_result({"run_id": context.run_id, **export_paths, "decision": report.get("default_promotion_decision", "no_real_default_promotion")})
     return 0
 
 

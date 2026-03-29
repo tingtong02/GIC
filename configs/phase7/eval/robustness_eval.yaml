@@ -1,0 +1,8 @@
+{
+  "robustness": {
+    "sensor_dropout": [0.3, 0.7, 0.9],
+    "timing_shift_minutes": [-10, 10],
+    "noise_stress_std": [0.0, 0.5],
+    "evaluate_models": ["phase5_default", "phase6_feature_only"]
+  }
+}

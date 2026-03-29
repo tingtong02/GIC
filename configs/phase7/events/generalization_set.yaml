@@ -1,0 +1,62 @@
+{
+  "event_set_name": "intermagnet_2020_generalization_event_set",
+  "notes": "Generalization and boundary event windows for Phase 7.",
+  "groups": {
+    "generalization": [
+      {
+        "event_id": "storm_2020_oct01",
+        "event_name": "INTERMAGNET Storm Window 2020-10-01",
+        "time_range": "2020-10-01T00:00:00Z/2020-10-02T00:00:00Z",
+        "region": "north_america",
+        "status": "active",
+        "quality_notes": ["Generalization event", "No direct GIC truth available"],
+        "available_geomagnetic_inputs": [
+          "intermagnet_bou_2020_oct01_smoke",
+          "intermagnet_frd_2020_oct01_smoke",
+          "intermagnet_ott_2020_oct01_smoke"
+        ],
+        "available_geoelectric_inputs": [],
+        "available_gic_observations": [],
+        "data_sources": ["intermagnet_2020_smoke"],
+        "evidence": {
+          "available_truth_types": ["geomagnetic_station_series", "event_peak_timing", "event_trend_reference"],
+          "direct_measurements": [],
+          "indirect_references": ["station_magnetic_disturbance"],
+          "trend_reference": true,
+          "peak_reference": true,
+          "ranking_reference": true,
+          "limitations": ["No transformer-neutral GIC measurements", "Single-region proxy mapping to case118"],
+          "default_level": 3
+        }
+      }
+    ],
+    "boundary": [
+      {
+        "event_id": "storm_2020_nov01",
+        "event_name": "INTERMAGNET Storm Window 2020-11-01",
+        "time_range": "2020-11-01T00:00:00Z/2020-11-02T00:00:00Z",
+        "region": "north_america",
+        "status": "active",
+        "quality_notes": ["Boundary event", "No direct GIC truth available"],
+        "available_geomagnetic_inputs": [
+          "intermagnet_bou_2020_nov01_smoke",
+          "intermagnet_frd_2020_nov01_smoke",
+          "intermagnet_ott_2020_nov01_smoke"
+        ],
+        "available_geoelectric_inputs": [],
+        "available_gic_observations": [],
+        "data_sources": ["intermagnet_2020_smoke"],
+        "evidence": {
+          "available_truth_types": ["geomagnetic_station_series", "event_peak_timing", "event_trend_reference"],
+          "direct_measurements": [],
+          "indirect_references": ["station_magnetic_disturbance"],
+          "trend_reference": true,
+          "peak_reference": true,
+          "ranking_reference": true,
+          "limitations": ["No transformer-neutral GIC measurements", "Single-region proxy mapping to case118"],
+          "default_level": 3
+        }
+      }
+    ]
+  }
+}
