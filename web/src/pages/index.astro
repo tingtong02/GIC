@@ -5,16 +5,8 @@ import { TradeoffToggle } from '../components/blocks/TradeoffToggle';
 import { LimitationWarning } from '../components/ui/LimitationWarning';
 import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
 import { KGNetworkChart } from '../components/blocks/KGNetworkChart';
+import { ArchitectureFlow } from '../components/blocks/ArchitectureFlow';
 ---
-
-<script type="module">
-  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
-  mermaid.initialize({ 
-    startOnLoad: true, 
-    theme: 'base', 
-    themeVariables: { primaryColor: '#f8fafc', lineColor: '#94a3b8', primaryTextColor: '#0f172a' } 
-  });
-</script>
 
 <Layout title="GIC 网络级态势重建系统 | Research System Showcase">
   <main class="max-w-4xl mx-auto px-6 py-20 divide-y divide-slate-100">
@@ -55,10 +47,10 @@ import { KGNetworkChart } from '../components/blocks/KGNetworkChart';
 
       <div class="mt-10 mb-8 border border-slate-200 rounded-lg overflow-hidden bg-slate-50/50">
         <div class="p-4 border-b border-slate-200">
-          <h4 class="text-xs uppercase font-bold tracking-widest text-slate-500">Grid Topology Complexity</h4>
+          <h4 class="text-xs uppercase font-bold tracking-widest text-slate-500">IEEE 118-Bus Grid Topology Complexity</h4>
         </div>
         <div class="flex justify-center p-6 mix-blend-multiply">
-          <img src="/topology_glow.svg" alt="GIC grid topology with hub nodes" class="max-w-full h-auto drop-shadow-sm" />
+          <img src="/grid_topology_full118.svg" alt="Full 118-node grid topology" class="max-w-full h-auto drop-shadow-sm" />
         </div>
       </div>
       <div class="mt-8 bg-blue-50 border border-blue-100 rounded-lg p-6">
@@ -72,19 +64,10 @@ import { KGNetworkChart } from '../components/blocks/KGNetworkChart';
     <!-- 3 & 4. 技术总览与演进历程 -->
     <ScrollRevealSection id="blueprint" title="Phase 演进架构与模块大图" client:load>
       
-      <!-- Mermaid Diagram -->
-      <div class="my-8">
-        <pre class="mermaid text-center bg-transparent" is:raw>
-flowchart LR
-    A[GIC Station<br/>Proxies] -->|FastICA| C(Residual Signal)
-    B[Grid Parameters<br/>Resistances] --> D{Physics Solver<br/>Prior Base}
-    C --> E[Temporal GNN<br/>GraphSAGE + GRU]
-    D --> E
-    E --> F((Phase 5<br/>Default Out))
-        </pre>
-      </div>
+      <!-- React DataFlow Architecture Diagram -->
+      <ArchitectureFlow client:load />
 
-      <ul class="space-y-6 border-l-2 border-slate-200 ml-3 pl-6 mt-8">
+      <ul class="space-y-6 border-l-2 border-slate-200 ml-3 pl-6 mt-12">
         <li class="relative">
           <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-slate-300 border-2 border-white"></span>
           <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 1-3：数据、物理端与信号基底</h4>
@@ -100,6 +83,16 @@ flowchart LR
           <h4 class="text-sm font-bold text-slate-900 mb-1">Phase 5：系统定海神针 (Frozen Default)</h4>
           <p class="text-sm text-slate-700 font-semibold mb-2">Temporal GNN + Physics Proxy Feature</p>
           <p class="text-sm text-slate-500">将物理方程降维输出的 Baseline 列为先验特征灌注至模型，搭配 GraphSAGE+GRU 及热点分类监督流，彻底大比分赢下 Phase 4 并固化为默认流。</p>
+
+          <!-- GraphSAGE Spatial Aggregation Viz -->
+          <div class="mt-6 mb-4 border border-slate-200 rounded-lg overflow-hidden bg-slate-900/5">
+            <div class="p-3 border-b border-slate-200 bg-white">
+              <h4 class="text-[10px] sm:text-xs uppercase font-bold tracking-widest text-slate-500">Spatial Aggregation Mechanics (GraphSAGE Core)</h4>
+            </div>
+            <div class="flex justify-center p-4 bg-[#0f172a] mix-blend-normal">
+              <img src="/graphsage_aggregation.svg" alt="GraphSAGE 1-hop and 2-hop aggregation on IEEE 118-node grid" class="max-w-full h-auto" />
+            </div>
+          </div>
         </li>
         <li class="relative">
           <span class="absolute -left-[33px] top-1 h-4 w-4 rounded-full bg-emerald-500 border-2 border-emerald-200"></span>

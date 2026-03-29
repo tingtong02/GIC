@@ -1,10 +1,20 @@
 import * as React from 'react';
 import ReactECharts from 'echarts-for-react';
+import { useEffect, useState } from 'react';
 
 export function KGNetworkChart() {
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+
+  useEffect(() => {
+    fetch('/kg_instances_real.json')
+      .then(res => res.json())
+      .then(data => setGraphData(data))
+      .catch(err => console.error("Failed to fetch KG data:", err));
+  }, []);
+
   const option = {
     tooltip: {
-      formatter: '{c}'
+      formatter: '{b}'
     },
     animationDurationUpdate: 1500,
     animationEasingUpdate: 'quinticInOut',
@@ -15,69 +25,53 @@ export function KGNetworkChart() {
         symbolSize: 20,
         roam: true,
         label: {
-          show: true,
+          show: false,
           position: 'right',
           formatter: '{b}',
-          fontSize: 11,
+          fontSize: 10,
           fontFamily: 'JetBrains Mono, monospace'
         },
-        edgeSymbol: ['none', 'arrow'],
+        edgeSymbol: ['none', 'none'],
         edgeSymbolSize: [4, 8],
         edgeLabel: {
           fontSize: 10
         },
         force: {
-          repulsion: 300,
-          edgeLength: 80,
+          repulsion: 150,
+          edgeLength: 60,
           gravity: 0.1
         },
         itemStyle: {
           borderColor: '#fff',
-          borderWidth: 2,
-          shadowBlur: 10,
+          borderWidth: 1.5,
+          shadowBlur: 5,
           shadowColor: 'rgba(0, 0, 0, 0.15)'
         },
         lineStyle: {
           color: '#cbd5e1',
-          curveness: 0.2,
-          width: 1.5
+          curveness: 0.3,
+          width: 0.8,
+          opacity: 0.5
         },
         emphasis: {
           focus: 'adjacency',
           scale: true,
+          label: {
+            show: true
+          },
           lineStyle: {
-            width: 3,
+            width: 2,
+            opacity: 1,
             color: '#6366f1'
           }
         },
-        data: [
-          { name: 'MAG_BOU', value: 'Geomagnetic Observatory', itemStyle: { color: '#0ea5e9' }, symbolSize: 30 },
-          { name: 'MAG_FRD', value: 'Geomagnetic Observatory', itemStyle: { color: '#0ea5e9' }, symbolSize: 30 },
-          { name: 'Grid_Region_A', value: 'High-Voltage Cluster', itemStyle: { color: '#8b5cf6' }, symbolSize: 45 },
-          { name: 'Grid_Region_B', value: 'High-Voltage Cluster', itemStyle: { color: '#8b5cf6' }, symbolSize: 45 },
-          { name: 'Node_101', value: '765kV Transformer', itemStyle: { color: '#f43f5e' } },
-          { name: 'Node_102', value: '765kV Transformer', itemStyle: { color: '#f43f5e' } },
-          { name: 'Node_103', value: '500kV Substation', itemStyle: { color: '#f59e0b' } },
-          { name: 'Node_104', value: '500kV Substation', itemStyle: { color: '#f59e0b' } },
-          { name: 'Node_105', value: '500kV Substation', itemStyle: { color: '#f59e0b' } },
-          { name: 'Fault_Rule_1', value: 'Constraint Rule: Line Trip', itemStyle: { color: '#10b981' }, symbolSize: 15, symbol: 'rect' }
-        ],
-        links: [
-          { source: 'MAG_BOU', target: 'Grid_Region_A', value: 'drives_field' },
-          { source: 'MAG_FRD', target: 'Grid_Region_B', value: 'drives_field' },
-          { source: 'Node_101', target: 'Grid_Region_A', value: 'belongs_to' },
-          { source: 'Node_102', target: 'Grid_Region_A', value: 'belongs_to' },
-          { source: 'Node_103', target: 'Grid_Region_B', value: 'belongs_to' },
-          { source: 'Node_104', target: 'Grid_Region_B', value: 'belongs_to' },
-          { source: 'Node_105', target: 'Grid_Region_B', value: 'belongs_to' },
-          { source: 'Node_101', target: 'Node_102', value: 'physically_connected' },
-          { source: 'Node_103', target: 'Node_104', value: 'physically_connected' },
-          { source: 'Node_104', target: 'Node_105', value: 'physically_connected' },
-          { source: 'Node_102', target: 'Fault_Rule_1', value: 'constrained_by' }
-        ]
+        data: graphData.nodes,
+        links: graphData.links
       }
     ]
   };
+
+  if (!graphData.nodes.length) return <div className="h-[400px] flex items-center justify-center text-slate-400">Loading KG Instances...</div>;
 
   return (
     <div className="bg-white border border-slate-200 rounded-lg shadow-sm p-8 overflow-hidden relative group my-8">

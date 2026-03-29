@@ -1,0 +1,3252 @@
+{
+  "nodes": [
+    {
+      "name": "Bus_1",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_2",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_3",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_4",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_5",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_6",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_7",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_8",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_9",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_10",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_11",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_12",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_13",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_14",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_15",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_16",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_17",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_18",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_19",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_20",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_21",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_22",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_23",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_24",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_25",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_26",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_27",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_28",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_29",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_30",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_31",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_32",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_33",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_34",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_35",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_36",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_37",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_38",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_39",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_40",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_41",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_42",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_43",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_44",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_45",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_46",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_47",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_48",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_49",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_50",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_51",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_52",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_53",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_54",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_55",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_56",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_57",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_58",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_59",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_60",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_61",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_62",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_63",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_64",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_65",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_66",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_67",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_68",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_69",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_70",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_71",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_72",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_73",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_74",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_75",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_76",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_77",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_78",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_79",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_80",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_81",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_82",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_83",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_84",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_85",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_86",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_87",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_88",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_89",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_90",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_91",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_92",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_93",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_94",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_95",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_96",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_97",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_98",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_99",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_100",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_101",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_102",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_103",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_104",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_105",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_106",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_107",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_108",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_109",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_110",
+      "value": "Transmission Hub",
+      "category": "Transmission Hub",
+      "itemStyle": {
+        "color": "#8b5cf6"
+      },
+      "symbolSize": 25
+    },
+    {
+      "name": "Bus_111",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_112",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_113",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_114",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_115",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_116",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_117",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Bus_118",
+      "value": "Substation",
+      "category": "Substation",
+      "itemStyle": {
+        "color": "#38bdf8"
+      },
+      "symbolSize": 12
+    },
+    {
+      "name": "Region_North",
+      "value": "Geographic Region",
+      "category": "Region",
+      "itemStyle": {
+        "color": "#ec4899"
+      },
+      "symbolSize": 45
+    },
+    {
+      "name": "Region_South",
+      "value": "Geographic Region",
+      "category": "Region",
+      "itemStyle": {
+        "color": "#ec4899"
+      },
+      "symbolSize": 45
+    },
+    {
+      "name": "Region_East",
+      "value": "Geographic Region",
+      "category": "Region",
+      "itemStyle": {
+        "color": "#ec4899"
+      },
+      "symbolSize": 45
+    },
+    {
+      "name": "Region_West",
+      "value": "Geographic Region",
+      "category": "Region",
+      "itemStyle": {
+        "color": "#ec4899"
+      },
+      "symbolSize": 45
+    },
+    {
+      "name": "Region_Central",
+      "value": "Geographic Region",
+      "category": "Region",
+      "itemStyle": {
+        "color": "#ec4899"
+      },
+      "symbolSize": 45
+    },
+    {
+      "name": "XFMR_3",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_4",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_6",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_7",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_9",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_12",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_14",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_23",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_27",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_33",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_38",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_39",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_41",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_42",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_44",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_45",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_47",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_50",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_52",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_54",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_55",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_59",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_62",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_64",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_68",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_71",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_77",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_78",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_80",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_81",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_84",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_87",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_88",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_91",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_92",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_100",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_101",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_102",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_104",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_106",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_114",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_117",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "XFMR_118",
+      "value": "Transformer Bank",
+      "category": "Transformer",
+      "itemStyle": {
+        "color": "#facc15"
+      },
+      "symbolSize": 15
+    },
+    {
+      "name": "MAG_BOU",
+      "value": "Magnetometer",
+      "category": "Magnetometer",
+      "itemStyle": {
+        "color": "#14b8a6"
+      },
+      "symbolSize": 35
+    },
+    {
+      "name": "MAG_FRD",
+      "value": "Magnetometer",
+      "category": "Magnetometer",
+      "itemStyle": {
+        "color": "#14b8a6"
+      },
+      "symbolSize": 35
+    },
+    {
+      "name": "MAG_NEW",
+      "value": "Magnetometer",
+      "category": "Magnetometer",
+      "itemStyle": {
+        "color": "#14b8a6"
+      },
+      "symbolSize": 35
+    }
+  ],
+  "links": [
+    {
+      "source": "Bus_1",
+      "target": "Bus_2",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_1",
+      "target": "Bus_3",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_2",
+      "target": "Bus_12",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_3",
+      "target": "Bus_5",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_3",
+      "target": "Bus_12",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_4",
+      "target": "Bus_5",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_4",
+      "target": "Bus_11",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_5",
+      "target": "Bus_6",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_5",
+      "target": "Bus_8",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_5",
+      "target": "Bus_11",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_6",
+      "target": "Bus_7",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_7",
+      "target": "Bus_12",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_8",
+      "target": "Bus_9",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_8",
+      "target": "Bus_30",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_9",
+      "target": "Bus_10",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_11",
+      "target": "Bus_12",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_11",
+      "target": "Bus_13",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_12",
+      "target": "Bus_14",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_12",
+      "target": "Bus_16",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_12",
+      "target": "Bus_117",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_13",
+      "target": "Bus_15",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_14",
+      "target": "Bus_15",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_15",
+      "target": "Bus_17",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_15",
+      "target": "Bus_19",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_15",
+      "target": "Bus_33",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_16",
+      "target": "Bus_17",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_17",
+      "target": "Bus_18",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_17",
+      "target": "Bus_30",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_17",
+      "target": "Bus_31",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_17",
+      "target": "Bus_113",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_18",
+      "target": "Bus_19",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_19",
+      "target": "Bus_20",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_19",
+      "target": "Bus_34",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_20",
+      "target": "Bus_21",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_21",
+      "target": "Bus_22",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_22",
+      "target": "Bus_23",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_23",
+      "target": "Bus_24",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_23",
+      "target": "Bus_25",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_23",
+      "target": "Bus_32",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_24",
+      "target": "Bus_70",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_24",
+      "target": "Bus_72",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_25",
+      "target": "Bus_26",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_25",
+      "target": "Bus_27",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_26",
+      "target": "Bus_30",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_27",
+      "target": "Bus_28",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_27",
+      "target": "Bus_32",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_27",
+      "target": "Bus_115",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_28",
+      "target": "Bus_29",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_29",
+      "target": "Bus_31",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_30",
+      "target": "Bus_38",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_31",
+      "target": "Bus_32",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_32",
+      "target": "Bus_113",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_32",
+      "target": "Bus_114",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_33",
+      "target": "Bus_37",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_34",
+      "target": "Bus_36",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_34",
+      "target": "Bus_37",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_34",
+      "target": "Bus_43",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_35",
+      "target": "Bus_36",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_35",
+      "target": "Bus_37",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_37",
+      "target": "Bus_38",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_37",
+      "target": "Bus_39",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_37",
+      "target": "Bus_40",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_38",
+      "target": "Bus_65",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_39",
+      "target": "Bus_40",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_40",
+      "target": "Bus_41",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_40",
+      "target": "Bus_42",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_41",
+      "target": "Bus_42",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_42",
+      "target": "Bus_49",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_43",
+      "target": "Bus_44",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_44",
+      "target": "Bus_45",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_45",
+      "target": "Bus_46",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_45",
+      "target": "Bus_49",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_46",
+      "target": "Bus_47",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_46",
+      "target": "Bus_48",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_47",
+      "target": "Bus_49",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_47",
+      "target": "Bus_69",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_48",
+      "target": "Bus_49",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Bus_50",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Bus_51",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Bus_54",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Bus_66",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Bus_69",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_50",
+      "target": "Bus_57",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_51",
+      "target": "Bus_52",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_51",
+      "target": "Bus_58",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_52",
+      "target": "Bus_53",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_53",
+      "target": "Bus_54",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_54",
+      "target": "Bus_55",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_54",
+      "target": "Bus_56",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_54",
+      "target": "Bus_59",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_55",
+      "target": "Bus_56",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_55",
+      "target": "Bus_59",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_56",
+      "target": "Bus_57",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_56",
+      "target": "Bus_58",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_56",
+      "target": "Bus_59",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_59",
+      "target": "Bus_60",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_59",
+      "target": "Bus_61",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_59",
+      "target": "Bus_63",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_60",
+      "target": "Bus_61",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_60",
+      "target": "Bus_62",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_61",
+      "target": "Bus_62",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_61",
+      "target": "Bus_64",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_62",
+      "target": "Bus_66",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_62",
+      "target": "Bus_67",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_63",
+      "target": "Bus_64",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_64",
+      "target": "Bus_65",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_65",
+      "target": "Bus_66",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_65",
+      "target": "Bus_68",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_66",
+      "target": "Bus_67",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_68",
+      "target": "Bus_69",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_68",
+      "target": "Bus_81",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_68",
+      "target": "Bus_116",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_69",
+      "target": "Bus_70",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_69",
+      "target": "Bus_75",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_69",
+      "target": "Bus_77",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_70",
+      "target": "Bus_71",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_70",
+      "target": "Bus_74",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_70",
+      "target": "Bus_75",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_71",
+      "target": "Bus_72",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_71",
+      "target": "Bus_73",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_74",
+      "target": "Bus_75",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_75",
+      "target": "Bus_77",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_75",
+      "target": "Bus_118",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_76",
+      "target": "Bus_77",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_76",
+      "target": "Bus_118",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_77",
+      "target": "Bus_78",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_77",
+      "target": "Bus_80",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_77",
+      "target": "Bus_82",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_78",
+      "target": "Bus_79",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_79",
+      "target": "Bus_80",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Bus_81",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Bus_96",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Bus_97",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Bus_98",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Bus_99",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_82",
+      "target": "Bus_83",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_82",
+      "target": "Bus_96",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_83",
+      "target": "Bus_84",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_83",
+      "target": "Bus_85",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_84",
+      "target": "Bus_85",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_85",
+      "target": "Bus_86",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_85",
+      "target": "Bus_88",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_85",
+      "target": "Bus_89",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_86",
+      "target": "Bus_87",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_88",
+      "target": "Bus_89",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_89",
+      "target": "Bus_90",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_89",
+      "target": "Bus_92",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_90",
+      "target": "Bus_91",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_91",
+      "target": "Bus_92",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_92",
+      "target": "Bus_93",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_92",
+      "target": "Bus_94",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_92",
+      "target": "Bus_100",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_92",
+      "target": "Bus_102",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_93",
+      "target": "Bus_94",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_94",
+      "target": "Bus_95",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_94",
+      "target": "Bus_96",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_94",
+      "target": "Bus_100",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_95",
+      "target": "Bus_96",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_96",
+      "target": "Bus_97",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_98",
+      "target": "Bus_100",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_99",
+      "target": "Bus_100",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_100",
+      "target": "Bus_101",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_100",
+      "target": "Bus_103",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_100",
+      "target": "Bus_104",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_100",
+      "target": "Bus_106",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_101",
+      "target": "Bus_102",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_103",
+      "target": "Bus_104",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_103",
+      "target": "Bus_105",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_103",
+      "target": "Bus_110",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_104",
+      "target": "Bus_105",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_105",
+      "target": "Bus_106",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_105",
+      "target": "Bus_107",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_105",
+      "target": "Bus_108",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_106",
+      "target": "Bus_107",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_108",
+      "target": "Bus_109",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_109",
+      "target": "Bus_110",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_110",
+      "target": "Bus_111",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_110",
+      "target": "Bus_112",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_114",
+      "target": "Bus_115",
+      "value": "connected_to"
+    },
+    {
+      "source": "Bus_1",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_2",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_3",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_3",
+      "target": "Bus_3",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_4",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_4",
+      "target": "Bus_4",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_5",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_6",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_6",
+      "target": "Bus_6",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_7",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_7",
+      "target": "Bus_7",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_8",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_9",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_9",
+      "target": "Bus_9",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_10",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_11",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_12",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_12",
+      "target": "Bus_12",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_13",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_14",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_14",
+      "target": "Bus_14",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_15",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_16",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_17",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_18",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_19",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_20",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_21",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_22",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_23",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_23",
+      "target": "Bus_23",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_24",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_25",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_26",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_27",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_27",
+      "target": "Bus_27",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_28",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_29",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_30",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_31",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_32",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_33",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_33",
+      "target": "Bus_33",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_34",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_35",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_36",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_37",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_38",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_38",
+      "target": "Bus_38",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_39",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_39",
+      "target": "Bus_39",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_40",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_41",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_41",
+      "target": "Bus_41",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_42",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_42",
+      "target": "Bus_42",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_43",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_44",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_44",
+      "target": "Bus_44",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_45",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_45",
+      "target": "Bus_45",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_46",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_47",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_47",
+      "target": "Bus_47",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_48",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_49",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_50",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_50",
+      "target": "Bus_50",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_51",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_52",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_52",
+      "target": "Bus_52",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_53",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_54",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_54",
+      "target": "Bus_54",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_55",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_55",
+      "target": "Bus_55",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_56",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_57",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_58",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_59",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_59",
+      "target": "Bus_59",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_60",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_61",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_62",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_62",
+      "target": "Bus_62",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_63",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_64",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_64",
+      "target": "Bus_64",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_65",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_66",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_67",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_68",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_68",
+      "target": "Bus_68",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_69",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_70",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_71",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_71",
+      "target": "Bus_71",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_72",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_73",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_74",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_75",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_76",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_77",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_77",
+      "target": "Bus_77",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_78",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_78",
+      "target": "Bus_78",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_79",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_80",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_80",
+      "target": "Bus_80",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_81",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_81",
+      "target": "Bus_81",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_82",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_83",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_84",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_84",
+      "target": "Bus_84",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_85",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_86",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_87",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_87",
+      "target": "Bus_87",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_88",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_88",
+      "target": "Bus_88",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_89",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_90",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_91",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_91",
+      "target": "Bus_91",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_92",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_92",
+      "target": "Bus_92",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_93",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_94",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_95",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_96",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_97",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_98",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_99",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_100",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_100",
+      "target": "Bus_100",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_101",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_101",
+      "target": "Bus_101",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_102",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_102",
+      "target": "Bus_102",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_103",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_104",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_104",
+      "target": "Bus_104",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_105",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_106",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_106",
+      "target": "Bus_106",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_107",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_108",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_109",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_110",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_111",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_112",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_113",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_114",
+      "target": "Region_Central",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_114",
+      "target": "Bus_114",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_115",
+      "target": "Region_South",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_116",
+      "target": "Region_East",
+      "value": "located_in"
+    },
+    {
+      "source": "Bus_117",
+      "target": "Region_North",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_117",
+      "target": "Bus_117",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "Bus_118",
+      "target": "Region_West",
+      "value": "located_in"
+    },
+    {
+      "source": "XFMR_118",
+      "target": "Bus_118",
+      "value": "stepped_down_at"
+    },
+    {
+      "source": "MAG_BOU",
+      "target": "Region_North",
+      "value": "drives_field"
+    },
+    {
+      "source": "MAG_BOU",
+      "target": "Region_West",
+      "value": "drives_field"
+    },
+    {
+      "source": "MAG_FRD",
+      "target": "Region_East",
+      "value": "drives_field"
+    },
+    {
+      "source": "MAG_FRD",
+      "target": "Region_South",
+      "value": "drives_field"
+    },
+    {
+      "source": "MAG_NEW",
+      "target": "Region_Central",
+      "value": "drives_field"
+    }
+  ]
+}
