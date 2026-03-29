@@ -104,7 +104,7 @@ import { MAEComparisonChart } from '../components/blocks/MAEComparisonChart';
 
     <!-- 6. 结果与对比看板 -->
     <ScrollRevealSection id="results" title="量化成果：Synthetic & Real-Event" client:load>
-      <MAEComparisonChart client:load />
+      <MAEComparisonChart client:only="react" />
 
       <div class="mt-12 bg-white border border-slate-200 rounded p-6 shadow-sm">
          <h4 class="text-sm font-bold tracking-tight mb-3">Real-Event Validation (Phase 7 事实)</h4>
