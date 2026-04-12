@@ -69,19 +69,27 @@ def draw_topology_sg(G):
     node_sizes = [min(d * 18, 150) for n, d in G.degree()]
     
     # Edges
-    nx.draw_networkx_edges(G, pos, ax=ax, alpha=0.25, edge_color="#64748b", width=0.5)
+    nx.draw_networkx_edges(G, pos, ax=ax, alpha=0.06, edge_color="#334155", width=0.3)
     
     # Base nodes
     nx.draw_networkx_nodes(
-        G, pos, ax=ax, node_size=node_sizes, 
-        node_color="#38bdf8", alpha=0.5, edgecolors="none"
+        G, pos, ax=ax, node_size=[s/1.5 for s in node_sizes], 
+        node_color="#0284c7", alpha=0.1, edgecolors="none"
     )
     
-    # Hub nodes
+    # Hub nodes Exteme Glow
     hubs = [n for n, d in degrees.items() if d >= 4]
     nx.draw_networkx_nodes(
-        G, pos, nodelist=hubs, ax=ax, node_size=[degrees[n] * 25 for n in hubs], 
-        node_color="#818cf8", alpha=0.8, edgecolors="#e0e7ff", linewidths=1.5
+        G, pos, nodelist=hubs, ax=ax, node_size=[degrees[n] * 50 for n in hubs], 
+        node_color="#0ea5e9", alpha=0.15, edgecolors="none"
+    )
+    nx.draw_networkx_nodes(
+        G, pos, nodelist=hubs, ax=ax, node_size=[degrees[n] * 20 for n in hubs], 
+        node_color="#38bdf8", alpha=0.4, edgecolors="none"
+    )
+    nx.draw_networkx_nodes(
+        G, pos, nodelist=hubs, ax=ax, node_size=[degrees[n] * 8 for n in hubs], 
+        node_color="#e0f2fe", alpha=1.0, edgecolors="#ffffff", linewidths=1.0
     )
     
     out_path = PUBLIC_DIR / "grid_topology_full118.svg"
